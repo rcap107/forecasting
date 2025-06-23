@@ -9,6 +9,9 @@ platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
 [tasks]
 
 [dependencies]
+notebook = ">=7.4.3,<8"
+jupyterlab = ">=4.4.3,<5"
+jupytext = ">=1.17.2,<2"
 scikit-learn = ">=1.7.0,<2"
 
 [feature.dev.dependencies]
