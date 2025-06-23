@@ -1,0 +1,37 @@
+[project]
+name = "forecasting"
+version = "0.1.0"
+description = "Forecasting"
+authors = ["Guillaume Lemaitre <guillaume@probabl.ai>", "Olivier Grisel <olivier@probabl.ai>"]
+channels = ["conda-forge"]
+platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
+
+[tasks]
+
+[dependencies]
+scikit-learn = ">=1.7.0,<2"
+
+[feature.dev.dependencies]
+ipykernel = "*"
+
+[feature.lint.dependencies]
+ruff = "*"
+black = "*"
+
+[feature.doc.dependencies]
+jupyter-book = "*"
+jupyterlite = "*"
+jupyterlite-pyodide-kernel = "*"
+python-libarchive-c = "*"
+
+[feature.doc.tasks]
+convert-to-notebooks = { cmd = "jupytext --to notebook ./content/python_files/*.py && mkdir -p ./content/notebooks && mv ./content/python_files/*.ipynb ./content/notebooks" }
+convert-to-executed-notebooks = { cmd = "jupytext --to notebook --execute ./content/python_files/*.py && mkdir -p ./content/notebooks && mv ./content/python_files/*.ipynb ./content/notebooks" }
+build-book = { cmd = "jupyter-book build book", depends-on = ["convert-to-notebooks"] }
+build-jupyterlite = { cmd = "jupyter lite build --contents content --output-dir dist", cwd = "jupyterlite" }
+serve-jupyterlite = { cmd = "python -m http.server", cwd = "jupyterlite/dist", depends-on = ["build-jupyterlite"] }
+
+[environments]
+lint = ["lint"]
+doc = ["doc"]
+dev = ["dev", "doc", "lint"]
