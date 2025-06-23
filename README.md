@@ -1,13 +1,13 @@
-# Probabilistic calibration and cost-sensitive learning
+# Forecasting with machine learning
 
 ## Browse the contents online
 
 - [![Launch JupyterLite](./book/images/jupyterbook_badge.svg 'Our JupyterBook
-website')](https://probabl-ai.github.io/calibration-cost-sensitive-learning/)
+website')](https://probabl-ai.github.io/forecasting/)
 Static HTML with precomputed results.
 
 - [![Launch JupyterLite](./book/images/jupyterlite_badge.svg 'Our JupyterLite
-website')](https://probabl-ai.github.io/calibration-cost-sensitive-learning/jupyterlite/tree)
+website')](https://probabl-ai.github.io/forecasting/jupyterlite/tree)
 In-browser interactive execution environment, no install needed.
 
 ## Local setup

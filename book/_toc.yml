@@ -7,4 +7,4 @@ parts:
 
 - caption: Forecasting
   chapters:
-  - file: content/notebooks/testing
+  - file: content/notebooks/test
