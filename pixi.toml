@@ -13,6 +13,9 @@ notebook = ">=7.4.3,<8"
 jupyterlab = ">=4.4.3,<5"
 jupytext = ">=1.17.2,<2"
 scikit-learn = ">=1.7.0,<2"
+polars = ">=1.31.0,<2"
+matplotlib-base = ">=3.10.3,<4"
+pyarrow = ">=20.0.0,<21"
 
 [feature.dev.dependencies]
 ipykernel = "*"
