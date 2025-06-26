@@ -87,3 +87,6 @@ content/notebooks
 
 # jupyterlite build
 jupyterlite/.jupyterlite.doit.db
+
+# requests cache for weather data download
+.cache.sqlite

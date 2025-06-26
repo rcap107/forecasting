@@ -16,8 +16,8 @@ time = skrub.var(
     "time",
     pl.DataFrame().with_columns(
         pl.datetime_range(
-            pl.datetime(2023, 1, 1, hour=0),
-            pl.datetime(2024, 12, 31, hour=23),
+            pl.datetime(2021, 1, 1, hour=0),
+            pl.datetime(2025, 6, 30, hour=23),
             time_zone="UTC",
             interval="1h",
         ).alias("time"),
@@ -75,17 +75,17 @@ time.join(electricity, on="time", how="left")
 
 # %%
 some_city_weather_raw = skrub.var(
-    "some_city_weather_raw",
-    pl.read_csv("../datasets/open-meteo-48.12N1.65W44m.csv", skip_rows=3),
+    "paris_weather_raw",
+    pl.read_parquet("../datasets/weather_paris.parquet"),
+).with_columns(
+    [
+        pl.col("time").dt.cast_time_unit("us"),  # Ensure time column has the same type
+    ]
 )
 some_city_weather_raw
 
 # %%
-some_city_weather = some_city_weather_raw.with_columns(
-    [
-        pl.col("time").str.to_datetime("%Y-%m-%dT%H:%M", time_zone="UTC"),
-    ]
-).rename(lambda x: x if x == "time" else x + " some_city")
+some_city_weather = some_city_weather_raw.rename(lambda x: x if x == "time" else x + " some_city")
 time.join(some_city_weather, on="time", how="left")
 
 # %%
