@@ -7,9 +7,6 @@ import sklearn
 
 sklearn.__version__
 
-# %%
-%pip install https://github.com/skrub-data/skrub@771f3870a23438211faefb0e54132781256acc0a
-
 # %% [markdown]
 # Install the development version of skrub to be able to use the
 # skrub expressions.
