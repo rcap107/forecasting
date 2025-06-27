@@ -5,6 +5,8 @@ format: jb-book
 root: intro
 parts:
 
-- caption: Forecasting
+- caption: Forecasting with Machine Learning
   chapters:
-  - file: content/notebooks/test
+  - file: content/notebooks/fetch_weather_data
+  - file: content/notebooks/feature_engineering
+  - file: content/notebooks/direct_vs_indirect_forecasting
