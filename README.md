@@ -1,4 +1,4 @@
-# Forecasting with machine learning
+# Tutorial on Forecasting with Machine Learning
 
 ## Browse the contents online
 
