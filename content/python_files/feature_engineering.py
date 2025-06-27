@@ -183,6 +183,7 @@ electricity = (
     )
     .drop(["Time (UTC)"])
     .rename({"Actual Total Load [MW] - BZN|FR": "load_mw"})
+    .filter(pl.col("time").dt.minute().eq(0))
     .select(["time", "load_mw"])
 )
 electricity
