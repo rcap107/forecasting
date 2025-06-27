@@ -4,7 +4,7 @@
 # jupyterlite). We need the development version of skrub to be able to use the
 # skrub expressions.
 # %%
-%pip install -q holidays https://pypi.anaconda.org/ogrisel/simple/skrub/0.6.dev0/skrub-0.6.dev0-py3-none-any.whl
+# %pip install -q holidays https://pypi.anaconda.org/ogrisel/simple/skrub/0.6.dev0/skrub-0.6.dev0-py3-none-any.whl
 
 # %%
 import polars as pl
