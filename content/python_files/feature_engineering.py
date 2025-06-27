@@ -16,8 +16,8 @@ time = skrub.var(
     "time",
     pl.DataFrame().with_columns(
         pl.datetime_range(
-            pl.datetime(2021, 1, 1, hour=0),
-            pl.datetime(2025, 6, 30, hour=23),
+            pl.datetime(2021, 3, 23, hour=0),
+            pl.datetime(2025, 5, 31, hour=23),
             time_zone="UTC",
             interval="1h",
         ).alias("time"),
@@ -71,22 +71,63 @@ electricity
 # %%
 time.join(electricity, on="time", how="left")
 
+# %% [markdown]
+#
+# List of 10 medium to large urban areas to approximately cover most regions in
+# France with a slight focus on most populated regions that are likely to drive
+# electricity demand.
+
+# %%
+city_names = [
+    "paris",
+    "lyon",
+    "marseille",
+    "toulouse",
+    "lille",
+    "limoges",
+    "nantes",
+    "strasbourg",
+    "brest",
+    "bayonne",
+]
+
+# %%
+all_city_weather_raw = {}
+for city_name in city_names:
+    all_city_weather_raw[city_name] = skrub.var(
+        f"{city_name}_weather_raw",
+        pl.read_parquet(f"../datasets/weather_{city_name}.parquet"),
+    ).with_columns(
+        [
+            pl.col("time").dt.cast_time_unit(
+                "us"
+            ),  # Ensure time column has the same type
+        ]
+    )
+
+# %%
+all_city_weather_raw["brest"]
+
+# %%
+all_city_weather_raw["brest"].drop_nulls(subset=["temperature_2m"])
 
 
 # %%
-some_city_weather_raw = skrub.var(
-    "paris_weather_raw",
-    pl.read_parquet("../datasets/weather_paris.parquet"),
-).with_columns(
-    [
-        pl.col("time").dt.cast_time_unit("us"),  # Ensure time column has the same type
-    ]
-)
-some_city_weather_raw
+time.join(all_city_weather_raw["brest"], on="time", how="left")
+
+
 
 # %%
-some_city_weather = some_city_weather_raw.rename(lambda x: x if x == "time" else x + " some_city")
-time.join(some_city_weather, on="time", how="left")
+all_city_weather = time
+for city_name, city_weather_raw in all_city_weather_raw.items():
+    all_city_weather = all_city_weather.join(
+        city_weather_raw.rename(lambda x: x if x == "time" else x + city_name),
+        on="time",
+        how="left",
+    )
+
+all_city_weather
+
 
 # %%
 import holidays
