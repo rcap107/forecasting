@@ -1,5 +1,5 @@
 # %%
-%pip install -q openmeteo-requests retry-requests requests-cache ipyleaflet
+# %pip install -q openmeteo-requests retry-requests requests-cache ipyleaflet
 
 # %%
 from pathlib import Path
@@ -10,20 +10,27 @@ import pandas as pd
 import requests_cache
 from retry_requests import retry
 
+# %% [markdown]
+#
+# List of 10 medium to large urban areas with their GPS coordinates to cover
+# most regions in France with a slight focus on most populated regions that
+# are likely to drive electricity demand.
+# 
+# The coordinates were suggested by Mistral's Le Chat. So better check on a map
+# if they are correct.
+
 # %%
-# List of 10 median to large urban areas with their GPS coordinates to cover
-# the most populous areas in France.
 cities = [
     {"name": "Paris", "latitude": 48.8566, "longitude": 2.3522},
     {"name": "Lyon", "latitude": 45.7640, "longitude": 4.8357},
-    # {"name": "Marseille", "latitude": 43.2965, "longitude": 5.3698},
-    # {"name": "Toulouse", "latitude": 43.6047, "longitude": 1.4442},
-    # {"name": "Lille", "latitude": 50.6292, "longitude": 3.0573},
-    # {"name": "Limoges", "latitude": 45.8336, "longitude": 1.2616},
-    # {"name": "Nantes", "latitude": 47.2184, "longitude": -1.5536},
-    # {"name": "Strasbourg", "latitude": 48.5734, "longitude": 7.7521},
-    # {"name": "Brest", "latitude": 48.3904, "longitude": -4.4861},
-    # {"name": "Bayonne", "latitude": 43.4833, "longitude": -1.4667},
+    {"name": "Marseille", "latitude": 43.2965, "longitude": 5.3698},
+    {"name": "Toulouse", "latitude": 43.6047, "longitude": 1.4442},
+    {"name": "Lille", "latitude": 50.6292, "longitude": 3.0573},
+    {"name": "Limoges", "latitude": 45.8336, "longitude": 1.2616},
+    {"name": "Nantes", "latitude": 47.2184, "longitude": -1.5536},
+    {"name": "Strasbourg", "latitude": 48.5734, "longitude": 7.7521},
+    {"name": "Brest", "latitude": 48.3904, "longitude": -4.4861},
+    {"name": "Bayonne", "latitude": 43.4833, "longitude": -1.4667},
 ]
 
 map_center = [46.6034, 1.8883]  # Approximate center of France
@@ -33,13 +40,17 @@ for city in cities:
     m.add_layer(marker)
 m
 
+# %% [markdown]
+#
+# Download weather data for each city. The data is downloaded from the Open
+# Meteo Historical Forecast API, which provides historical weather data for
+# free (with rate limits).
 
 # %%
-
 def download_weather_data(city):
-    cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
-    retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
-    openmeteo = openmeteo_requests.Client(session=retry_session)
+    session = requests_cache.CachedSession(".cache", expire_after=3600)
+    session = retry(session, retries=5, backoff_factor=0.1)
+    openmeteo = openmeteo_requests.Client(session=session)
 
     # Make sure all required weather variables are listed here. The order of
     # variables in hourly or daily is important to assign them correctly below.
@@ -87,7 +98,13 @@ def download_weather_data(city):
     hourly_data["relative_humidity_2m"] = hourly_relative_humidity_2m
     return pd.DataFrame(data=hourly_data)
 
-
+# %% [markdown]
+#
+# Download weather data for each city and save it to a Parquet file in the
+# `datasets` folder. The data is saved in a format that can be easily joined
+# with the electricity load data. We use the Parquet format to save storage
+# space and to speed up the loading time in the notebook. Parquet is also
+# interesting because data types are not ambiguous contrary to CSV.
 # %%
 datasets_folder = Path("../datasets")
 for city in cities:
