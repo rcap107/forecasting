@@ -21,6 +21,8 @@ pip = ">=25.1.1,<26"
 ipyleaflet = ">=0.20.0,<0.21"
 pandas = ">=2.3.0,<3"
 mlforecast = ">=1.0.2,<2"
+altair = ">=5.5.0,<6"
+darts = ">=0.2,<0.3"
 
 [pypi-dependencies]
 skrub = { git = "https://github.com/skrub-data/skrub", rev = "771f3870a23438211faefb0e54132781256acc0a" }
