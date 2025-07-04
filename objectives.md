@@ -30,6 +30,8 @@
         - Show limitation of split conformal predictions: 
         - Show CQR.
         - Non-exchangeable conformal prediction.
+
+- Making models with lagged features robust to random missing values.
 - TabICL or TabPFN on calendar + exogenous features (without lag features).
 
 - Use skore at some points? Maybe not for this iteration.
