@@ -507,7 +507,7 @@ randomized_search.plot_results()
 nested_cv_results = skrub.cross_validate(
     environment=predictions.skb.get_data(),
     pipeline=randomized_search,
-    cv=ts_cv_3,
+    cv=ts_cv_5,
     scoring={
         "r2": get_scorer("r2"),
         "mape": mape_scorer,
@@ -515,6 +515,9 @@ nested_cv_results = skrub.cross_validate(
     n_jobs=-1,
     return_pipeline=True,
 ).round(3)
+
+# %%
+nested_cv_results
 
 # %%
 for outer_cv_idx in range(len(nested_cv_results)):
