@@ -106,9 +106,10 @@ city_names = [
 # %%
 all_city_weather_raw = {}
 for city_name in city_names:
-    all_city_weather_raw[city_name] = skrub.var(
-        f"{city_name}_weather_raw",
-        pl.from_arrow(read_table(f"../datasets/weather_{city_name}.parquet")),
+    # all_city_weather_raw[city_name] = skrub.var(
+        # f"{city_name}_weather_raw",
+    all_city_weather_raw[city_name] = (
+        pl.from_arrow(read_table(f"../datasets/weather_{city_name}.parquet"))
     ).with_columns(
         [
             pl.col("time").dt.cast_time_unit(
@@ -129,7 +130,7 @@ time.join(all_city_weather_raw["brest"], on="time", how="inner")
 
 
 # %%
-all_city_weather = time
+all_city_weather = time.skb.eval()
 for city_name, city_weather_raw in all_city_weather_raw.items():
     all_city_weather = all_city_weather.join(
         city_weather_raw.rename(lambda x: x if x == "time" else x + "_" + city_name),
@@ -137,6 +138,10 @@ for city_name, city_weather_raw in all_city_weather_raw.items():
         how="inner",
     )
 
+all_city_weather = skrub.var(
+    "all_city_weather",
+    all_city_weather,
+)
 all_city_weather
 
 # %% [markdown]
@@ -436,8 +441,7 @@ with threadpoolctl.threadpool_limits(limits=1):
             ),
         ),
         y=target,
-    ).rename({"load_mw_horizon_1h": "predicted_load_mw_horizon_1h"})
-
+    )
 predictions
 
 # %%
@@ -445,7 +449,7 @@ altair.Chart(
     pl.concat(
         [
             target_df.skb.eval(),
-            predictions.skb.eval(),
+            predictions.rename({"load_mw_horizon_1h": "predicted_load_mw_horizon_1h"}).skb.eval(),
         ],
         how="horizontal",
     ).tail(1000)
@@ -465,10 +469,10 @@ ts_cv = TimeSeriesSplit(n_splits=5, max_train_size=None, gap=0)
 predictions.skb.cross_validate(
     cv=ts_cv,
     scoring=[
-        "mean_absolute_error",
-        "mean_squared_error",
+        "neg_mean_absolute_error",
+        "neg_mean_squared_error",
         "r2",
-        "mean_absolute_percentage_error",
+        "neg_mean_absolute_percentage_error",
     ],
     verbose=1,
     n_jobs=-1,
