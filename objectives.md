@@ -36,3 +36,11 @@
 - TabICL or TabPFN on calendar + exogenous features (without lag features).
 
 - Use skore at some points? Maybe not for this iteration.
+
+
+## Exercises
+
+- Adapt the main skrub pipeline to treat weather data as past covariates
+  instead of future covariates.
+
+- Exercise: show how to use subsampling.
