@@ -24,6 +24,7 @@
 - Alternatives to a family of t+h direct models:
     - recursive modeling: show limitations on synthetic data (show with mlforecast, darts and sktime)
     - pass h as an extra features and generate expanded datasets for many h values (and nans in lag features).
+- Dealing with drifts and trends via multiplicative preprocessing of the target.
 - Quantify uncertainty in predictions with quantile regressors and evaluate them:
     - Study pinball loss, coverage / width of uncertainty regressors + reliability diagrams + Lorenz curve
     - Study if conformal predictions can improve upon this (optional)
