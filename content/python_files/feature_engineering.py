@@ -438,6 +438,7 @@ with threadpoolctl.threadpool_limits(limits=1):
         y=target,
     ).rename({"load_mw_horizon_1h": "predicted_load_mw_horizon_1h"})
 
+predictions
 
 # %%
 altair.Chart(
@@ -448,7 +449,11 @@ altair.Chart(
         ],
         how="horizontal",
     ).tail(1000)
-).transform_fold([target_column_name, "predicted_load_mw_horizon_1h"],).mark_line(tooltip=True).encode(
+).transform_fold(
+    [target_column_name, "predicted_load_mw_horizon_1h"],
+).mark_line(
+    tooltip=True
+).encode(
     x="prediction_time:T", y="value:Q", color="key:N"
 ).interactive()
 
@@ -459,7 +464,13 @@ from sklearn.model_selection import TimeSeriesSplit
 ts_cv = TimeSeriesSplit(n_splits=5, max_train_size=None, gap=0)
 predictions.skb.cross_validate(
     cv=ts_cv,
-    scoring=["mean_absolute_error", "mean_squared_error", "r2"],
-    n_jobs=4,
+    scoring=[
+        "mean_absolute_error",
+        "mean_squared_error",
+        "r2",
+        "mean_absolute_percentage_error",
+    ],
+    verbose=1,
+    n_jobs=-1,
 )
 # %%
