@@ -25,6 +25,8 @@ altair = ">=5.5.0,<6"
 graphviz = ">=13.1.0,<14"
 pydot = ">=4.0.1,<5"
 u8darts = ">=0.36.0,<0.37"
+setuptools = "<81"
+plotly = ">=6.2.0,<7"
 
 [pypi-dependencies]
 skrub = { git = "https://github.com/skrub-data/skrub", rev = "771f3870a23438211faefb0e54132781256acc0a" }
