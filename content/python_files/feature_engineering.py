@@ -126,10 +126,6 @@ all_city_weather_raw["brest"].drop_nulls(subset=["temperature_2m"])
 
 
 # %%
-time.join(all_city_weather_raw["brest"], on="time", how="inner")
-
-
-# %%
 all_city_weather = time.skb.eval()
 for city_name, city_weather_raw in all_city_weather_raw.items():
     all_city_weather = all_city_weather.join(
