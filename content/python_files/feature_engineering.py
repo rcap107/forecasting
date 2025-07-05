@@ -283,9 +283,7 @@ electricity_lagged
 import altair
 
 
-altair.Chart(
-    electricity_lagged.tail(100).skb.eval()
-).transform_fold(
+altair.Chart(electricity_lagged.tail(100).skb.eval()).transform_fold(
     [
         "load_mw",
         "load_mw_lag_1h",
@@ -299,11 +297,7 @@ altair.Chart(
         "load_mw_iqr_7d",
     ],
     as_=["key", "load_mw"],
-).mark_line(
-    tooltip=True
-).encode(
-    x="time:T", y="load_mw:Q", color="key:N"
-).interactive()
+).mark_line(tooltip=True).encode(x="time:T", y="load_mw:Q", color="key:N").interactive()
 
 # %% [markdown]
 # ## Investigating outliers in the lagged features
@@ -356,9 +350,7 @@ altair.Chart(
         & (pl.col("time") < pl.datetime(2021, 12, 31, time_zone="UTC"))
     ).skb.eval()
 ).transform_fold(
-    [
-        f"temperature_2m_{city_name}" for city_name in city_names
-    ],
+    [f"temperature_2m_{city_name}" for city_name in city_names],
 ).mark_line(
     tooltip=True
 ).encode(
@@ -384,3 +376,90 @@ altair.Chart(
 # to keep a contiguous dataset assign 0 weights to the affected rows when
 # fitting or evaluating the trained models via the use of the `sample_weight`
 # parameter.
+
+# %% [markdown]
+# ## Final dataset
+#
+# We now assemble the dataset that will be used to train and evaluate the forecasting
+# models via backtesting.
+
+# %%
+prediction_time = time = skrub.var(
+    "prediction_time",
+    pl.DataFrame().with_columns(
+        pl.datetime_range(
+            start=time_range_start + pl.duration(days=7),
+            end=time_range_end - pl.duration(hours=24),
+            time_zone="UTC",
+            interval="1h",
+        ).alias("prediction_time"),
+    ),
+)
+prediction_time
+
+features = (
+    (
+        prediction_time.join(
+            electricity_lagged, left_on="prediction_time", right_on="time"
+        )
+        .join(all_city_weather, left_on="prediction_time", right_on="time")
+        .join(calendar, left_on="prediction_time", right_on="time")
+    )
+    .drop("prediction_time")
+    .skb.mark_as_X()
+)
+features
+
+# %%
+horizon = 1
+target_column_name = f"load_mw_horizon_{horizon}h"
+target_df = prediction_time.join(
+    electricity.with_columns(
+        [pl.col("load_mw").shift(-horizon).alias(target_column_name)]
+    ),
+    left_on="prediction_time",
+    right_on="time",
+)
+target = target_df[target_column_name].skb.mark_as_y()
+
+# %%
+from sklearn.ensemble import HistGradientBoostingRegressor
+import threadpoolctl
+
+
+with threadpoolctl.threadpool_limits(limits=1):
+    predictions = features.skb.apply(
+        HistGradientBoostingRegressor(
+            random_state=0,
+            learning_rate=skrub.choose_float(
+                0.01, 0.9, default=0.1, log=True, name="learning_rate"
+            ),
+        ),
+        y=target,
+    ).rename({"load_mw_horizon_1h": "predicted_load_mw_horizon_1h"})
+
+
+# %%
+altair.Chart(
+    pl.concat(
+        [
+            target_df.skb.eval(),
+            predictions.skb.eval(),
+        ],
+        how="horizontal",
+    ).tail(1000)
+).transform_fold([target_column_name, "predicted_load_mw_horizon_1h"],).mark_line(tooltip=True).encode(
+    x="prediction_time:T", y="value:Q", color="key:N"
+).interactive()
+
+
+# %%
+from sklearn.model_selection import TimeSeriesSplit
+
+ts_cv = TimeSeriesSplit(n_splits=5, max_train_size=None, gap=0)
+predictions.skb.cross_validate(
+    cv=ts_cv,
+    scoring=["mean_absolute_error", "mean_squared_error", "r2"],
+    n_jobs=4,
+)
+# %%
