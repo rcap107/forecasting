@@ -1,5 +1,5 @@
 
-## New notebook
+## h=1 model design and evaluation
 
 - Use dataframes / skrub to fetch and align time-structured data source to
   build exogeneous features that are available for the forecast horizon of
@@ -23,7 +23,7 @@
         - exercise: pipeline with missing value support: SimpleImputer with indicator, Spline, Nystroem, RidgeCV or TableVectorizer
             - hyper tuning + per analysis of the CV results of the best model.
 
-## New notebook
+## Multiple h models
 
 - Train a family of t+h direct models and evaluate them:
     - Plot predictions at different time points.
@@ -33,16 +33,16 @@
     - Use vector output models with concatenated future covariates.
     - Pass h as an extra features and generate expanded datasets for many h values and concatenated future covariates?
 
-## New notebook
+## Uncertainty quantification
 
 - Quantify uncertainty in predictions with quantile regressors and evaluate them:
     - Study pinball loss, coverage / width of uncertainty regressors + reliability diagrams + Lorenz curve
-    - Study if conformal predictions can improve upon this (optional)
-        - Show limitation of split conformal predictions: 
-        - Show CQR.
-        - Non-exchangeable conformal prediction.
+- Study if conformal predictions can improve upon this (optional)
+    - Show limitation of split conformal predictions:
+    - Show CQR.
+    - Non-exchangeable conformal prediction.
 - Regression as probabilistic classification reduction.
-    - auto-regressive sampling to sample from the joint future distribution.
+    - Auto-regressive sampling to sample from the joint future distribution.
 
 ## Other ideas
 
