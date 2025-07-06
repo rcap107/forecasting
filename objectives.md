@@ -17,7 +17,7 @@
     - Time of prediction in deployment setting != every possible times
     - models:
         - HGBDR
-        - pipeline with missing value support: SimpleImputer with indicator, Spline, Nystroem, RidgeCV
+        - exercise: pipeline with missing value support: SimpleImputer with indicator, Spline, Nystroem, RidgeCV
 - Train a family of t+h direct models and evaluate them:
     - Plot predictions at different time points.
     - Compute per-horizon metrics + metrics integrated over all horizons of interests
