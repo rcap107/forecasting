@@ -58,3 +58,6 @@
   instead of future covariates.
 
 - Exercise: show how to use subsampling.
+
+- Exercise: custom splitter with metadata routing on datetime info: year-based splitting with year passed as feature.
+    - clean implementation would require making `SkrubPipeline` implement the `get_metadata_routing` method like the `sklearn.pipeline.Pipeline` does.
