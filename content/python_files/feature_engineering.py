@@ -587,8 +587,6 @@ cv_results = predictions.skb.cross_validate(
 cv_results.round(3)
 
 # %%
-
-
 def collect_cv_predictions(pipelines, cv_splitter, predictions, prediction_time):
 
     index_generator = cv_splitter.split(prediction_time.skb.eval())
