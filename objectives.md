@@ -36,6 +36,8 @@
     - Compute per-horizon metrics + metrics integrated over all horizons of interests
     - Show results as bar plots by h (one for R2, one for MAPE), compute mean
       with (min-max error bars).
+- Consider models that are natively multioutput: `RandomForestRegressor` (with
+  `min_samples_leaf` to 30 min) or XGBoost multioutput vector leafs.
 - Alternatives to a family of t+h direct models:
     - Recursive modeling: show limitations on synthetic data (show with mlforecast, darts or sktime)
     - Use vector output models with concatenated future covariates.
