@@ -613,7 +613,7 @@ def collect_cv_predictions(pipelines, cv_splitter, predictions, prediction_time)
             pl.DataFrame(
                 {
                     "prediction_time": prediction_time.skb.eval()[test_idx],
-                    "load_mw": split["test"]["y_test"],
+                    "load_mw": split["y_test"],
                     "predicted_load_mw": pipeline.predict(split["test"]),
                 }
             )
@@ -625,6 +625,7 @@ def collect_cv_predictions(pipelines, cv_splitter, predictions, prediction_time)
 cv_predictions = collect_cv_predictions(
     cv_results["pipeline"], ts_cv_5, predictions, prediction_time
 )
+cv_predictions[0]
 
 
 # %%
