@@ -565,7 +565,7 @@ features_with_dropped_cols = features.skb.apply(
     )
 )
 
-predictions = features_with_dropped_cols.skb.apply(
+hgbr_predictions = features_with_dropped_cols.skb.apply(
     HistGradientBoostingRegressor(
         random_state=0,
         loss=skrub.choose_from(["squared_error", "poisson", "gamma"], name="loss"),
@@ -578,16 +578,33 @@ predictions = features_with_dropped_cols.skb.apply(
     ),
     y=target,
 )
-predictions
+hgbr_predictions
 
 # %% [markdown]
 #
 # The `predictions` expression captures the whole expression graph that
 # includes the feature engineering steps, the target variable, and the model
 # training step.
+#
+# In particular, the input data keys for the full pipeline can be
+# inspected as follows:
 
 # %%
-predictions.skb.get_data().keys()
+hgbr_predictions.skb.get_data().keys()
+
+# %% [markdown]
+#
+# Furthermore, the hyper-parameters of the full pipeline can be retrieved as
+# follows:
+
+# %%
+hgbr_pipeline = hgbr_predictions.skb.get_pipeline()
+hgbr_pipeline.describe_params()
+
+# %% [markdown]
+#
+# When running this notebook locally, you can also interactively inspect all
+# the steps of the DAG using the following (once uncommented):
 
 # %%
 # predictions.skb.full_report()
@@ -608,7 +625,7 @@ altair.Chart(
     pl.concat(
         [
             targets.skb.eval(),
-            predictions.rename(
+            hgbr_predictions.rename(
                 {target_column_name: predicted_target_column_name}
             ).skb.eval(),
         ],
@@ -664,7 +681,7 @@ from sklearn.metrics import make_scorer, mean_absolute_percentage_error, get_sco
 from sklearn.metrics import d2_tweedie_score
 
 
-cv_results = predictions.skb.cross_validate(
+cv_results = hgbr_predictions.skb.cross_validate(
     cv=ts_cv_5,
     scoring={
         "r2": get_scorer("r2"),
@@ -714,7 +731,7 @@ def collect_cv_predictions(pipelines, cv_splitter, predictions, prediction_time)
 
 # %%
 cv_predictions = collect_cv_predictions(
-    cv_results["pipeline"], ts_cv_5, predictions, prediction_time
+    cv_results["pipeline"], ts_cv_5, hgbr_predictions, prediction_time
 )
 cv_predictions[0]
 
@@ -1089,7 +1106,7 @@ plot_residuals_by_month(cv_predictions).interactive()
 ts_cv_2 = TimeSeriesSplit(
     n_splits=2, test_size=test_size, max_train_size=max_train_size, gap=24
 )
-randomized_search = predictions.skb.get_randomized_search(
+randomized_search = hgbr_predictions.skb.get_randomized_search(
     cv=ts_cv_2,
     scoring="r2",
     n_iter=100,
@@ -1187,7 +1204,7 @@ nested_cv_results = skrub.cross_validate(
     cv=ts_cv_5,
     scoring={
         "r2": get_scorer("r2"),
-        "mape": mape_scorer,
+        "mape": make_scorer(mean_absolute_percentage_error),
     },
     n_jobs=-1,
     return_pipeline=True,
