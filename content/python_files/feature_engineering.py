@@ -688,9 +688,9 @@ cv_results = hgbr_predictions.skb.cross_validate(
     cv=ts_cv_5,
     scoring={
         "r2": get_scorer("r2"),
-        "d2_poisson": make_scorer(mean_absolute_percentage_error),
+        "d2_poisson": make_scorer(d2_tweedie_score, power=2.0),
         "d2_gamma": make_scorer(d2_tweedie_score, power=1.0),
-        "mape": make_scorer(d2_tweedie_score, power=2.0),
+        "mape": make_scorer(mean_absolute_percentage_error),
     },
     return_train_score=True,
     return_pipeline=True,
