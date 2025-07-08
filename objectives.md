@@ -71,3 +71,7 @@
 
 - Exercise: custom splitter with metadata routing on datetime info: year-based splitting with year passed as feature.
     - clean implementation would require making `SkrubPipeline` implement the `get_metadata_routing` method like the `sklearn.pipeline.Pipeline` does.
+
+- Exercise: Use a `sklearn.ensemble.RandomForestRegressor` to handle multioutput
+  horizon forecasts and show that it handles out of the box the multioutput
+  problem and thus is faster than using a `sklearn.multioutput.MultiOutputRegressor`.
