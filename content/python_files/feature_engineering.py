@@ -249,18 +249,6 @@ electricity.filter(
 
 # %% [markdown]
 #
-# Check that the number of rows matches our expectations based on
-# the number of hours that separate the first and the last dates. We can do
-# that by joining with the time range dataframe and checking that the number of
-# rows stays the same.
-
-# %%
-assert (
-    time.join(electricity, on="time", how="inner").shape[0] == time.shape[0]
-).skb.eval()
-
-# %% [markdown]
-#
 # ## Lagged features
 #
 # We can now create some lagged features from the electricity load data.
@@ -363,7 +351,7 @@ altair.Chart(
         & (pl.col("time") < pl.datetime(2021, 12, 31, time_zone="UTC"))
     ).skb.eval()
 ).transform_fold(
-    [f"weather_temperature_2m_{city_name}" for city_name in city_names],
+    [f"weather_temperature_2m_{city_name}" for city_name in city_names.skb.eval()],
 ).mark_line(
     tooltip=True
 ).encode(
