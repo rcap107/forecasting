@@ -70,6 +70,10 @@
 
 ## Exercises
 
+- Exercise: pipeline with missing value support: SimpleImputer with
+  indicator, Spline, Nystroem, RidgeCV or TableVectorizer
+    - hyper tuning + per analysis of the CV results of the best model.
+
 - Adapt the main skrub pipeline to treat weather data as past covariates
   instead of future covariates.
 
