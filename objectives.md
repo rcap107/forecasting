@@ -11,21 +11,25 @@
           they show in historical data: in practice this means that we should
           create lag feature with a minimum lag of a few hours to leave time
           for recent measurements to reach the ML prediction system.
+
         - iceberg / deltalake can explicitly record system lag info in
           historical data.
+        - **TODO** refactor to used deferred to get a more interpretable
     - windowing aggregates included or not and window size
     - weather features granularity
     - calendar features
     - holiday feature
     - use a skrub choice tree + builtin random search
 - Train a t+1 prediction model and evaluate it:
-    - MSE/R2, Tweedie deviance ou MAPE.
-    - reliability diagram
-    - Lorenz curve
     - Time-aware cross-validation.
+    - MSE/R2, Tweedie deviance ou MAPE.
+    - Lorenz curve
+    - reliability diagram
+    - **TODO** residuals vs predicted
+    - Binned residual analysis (**TODO**: refactor common code and add perfect line + always blue) 
     - models:
         - HGBDR
-        - Exercise: pipeline with missing value support: SimpleImputer with
+        - **TODO** Exercise: pipeline with missing value support: SimpleImputer with
           indicator, Spline, Nystroem, RidgeCV or TableVectorizer
             - hyper tuning + per analysis of the CV results of the best model.
 
@@ -52,6 +56,8 @@
     - Show CQR.
     - Non-exchangeable conformal prediction.
 - Regression as probabilistic classification reduction.
+    - https://github.com/ogrisel/notebooks/blob/3a3d2321d4b81d0f089fd13aef96fd27745b505f/quantile_regression_as_classification.ipynb
+    - https://github.com/ogrisel/euroscipy-2022-time-series/blob/main/plot_time_series_feature_engineering.ipynb
     - Auto-regressive sampling to sample from the joint future distribution.
 
 ## Other ideas
