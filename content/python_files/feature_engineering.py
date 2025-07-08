@@ -38,6 +38,7 @@ import tzdata  # noqa: F401
 import pandas as pd
 from pyarrow.parquet import read_table
 
+import altair
 import numpy as np
 import polars as pl
 import skrub
@@ -290,9 +291,6 @@ electricity_lagged = electricity.with_columns(
 electricity_lagged
 
 # %%
-import altair
-
-
 altair.Chart(electricity_lagged.tail(100).skb.eval()).transform_fold(
     [
         "load_mw",
