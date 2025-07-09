@@ -1211,18 +1211,44 @@ for metric_name, dataset_type in itertools.product(["mape", "r2"], ["train", "te
 
 # %% [markdown]
 #
-# ### Native multi-output handling using `RandomForestRegressor`
+# ## Native multi-output handling using `RandomForestRegressor`
 #
 # In the previous section, we showed how to wrap a `HistGradientBoostingRegressor`
 # in a `MultiOutputRegressor` to predict multiple horizons. With such a strategy, it
 # means that we trained independent `HistGradientBoostingRegressor`, one for each
 # horizon.
 #
-# In this exercise, you will
+# `RandomForestRegressor` natively supports multi-output regression: instead of
+# independently training a model per horizon, it will train a joint model that
+# predicts all horizons at once.
+#
+# Repeat the previous analysis using a `RandomForestRegressor`. Fix the parameter
+# `min_samples_leaf` to 5.
+#
+# Once you created the model, plot the horizon forecast for a given date and time.
+# In addition, compute the cross-validated predictions and plot the R2 and MAPE
+# scores for each horizon.
+#
+# Does this model perform better or worse than the previous model?
 
+# %%
 from sklearn.ensemble import RandomForestRegressor
 
+# %%
+# Write your code here.
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
 
+# %%
 multioutput_predictions_rf = features_with_dropped_cols.skb.apply(
     RandomForestRegressor(min_samples_leaf=5, random_state=0, n_jobs=-1),
     y=targets.skb.drop(cols=["prediction_time", "load_mw"]).skb.mark_as_y(),
@@ -1303,6 +1329,10 @@ for metric_name, dataset_type in itertools.product(["mape", "r2"], ["train", "te
     )
 
     display(chart)
+
+# %% [markdown]
+#
+# ## Uncertainty quantification using quantile regression
 
 # %%
 from sklearn.metrics import d2_pinball_score
