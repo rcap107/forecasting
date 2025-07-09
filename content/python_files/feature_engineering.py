@@ -1690,6 +1690,8 @@ for kind in ["actual_vs_predicted", "residual_vs_predicted"]:
     )
     axs[2].set_title("0.95 quantile regression")
 
+    fig.suptitle(f"{kind} for GBRT minimzing different quantile losses")
+
 
 # %%
 def coverage_score(y_true, y_quantile_low, y_quantile_high):
@@ -1697,7 +1699,9 @@ def coverage_score(y_true, y_quantile_low, y_quantile_high):
     y_quantile_low = np.asarray(y_quantile_low)
     y_quantile_high = np.asarray(y_quantile_high)
     return float(
-        np.logical_and(y_true >= y_quantile_low, y_true <= y_quantile_high).mean().round(4)
+        np.logical_and(y_true >= y_quantile_low, y_true <= y_quantile_high)
+        .mean()
+        .round(4)
     )
 
 
