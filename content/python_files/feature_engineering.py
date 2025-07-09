@@ -1223,7 +1223,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 
 multioutput_predictions_rf = features_with_dropped_cols.skb.apply(
-    RandomForestRegressor(min_samples_leaf=30, random_state=0, n_jobs=-1),
+    RandomForestRegressor(min_samples_leaf=5, random_state=0, n_jobs=-1),
     y=targets.skb.drop(cols=["prediction_time", "load_mw"]).skb.mark_as_y(),
 ).skb.set_name("random_forest")
 
@@ -1233,7 +1233,7 @@ named_predictions_rf = multioutput_predictions_rf.rename(
 )
 
 # %%
-plot_at_time = datetime.datetime(2025, 5, 24, 0, 0, tzinfo=datetime.timezone.utc)
+plot_at_time = datetime.datetime(2021, 4, 24, 0, 0, tzinfo=datetime.timezone.utc)
 historical_timedelta = datetime.timedelta(hours=24 * 5)
 plot_horizon_forecast(
     targets,
@@ -1241,17 +1241,17 @@ plot_horizon_forecast(
     plot_at_time,
     historical_timedelta,
     target_column_name_pattern,
-)
+).skb.preview()
 
 # %%
-plot_at_time = datetime.datetime(2025, 5, 25, 0, 0, tzinfo=datetime.timezone.utc)
+plot_at_time = datetime.datetime(2021, 4, 25, 0, 0, tzinfo=datetime.timezone.utc)
 plot_horizon_forecast(
     targets,
     named_predictions_rf,
     plot_at_time,
     historical_timedelta,
     target_column_name_pattern,
-)
+).skb.preview()
 
 # %%
 multioutput_cv_results_rf = multioutput_predictions_rf.skb.cross_validate(
