@@ -1687,11 +1687,18 @@ combined_chart = quantile_band_chart + median_chart
 combined_chart.interactive()
 
 # %%
-plot_residuals_vs_predicted(
-    collect_cv_predictions(
-        cv_results_05["pipeline"], ts_cv_5, predictions_gbrt_05, prediction_time
-    )
-).interactive().properties(
+cv_predictions_05 = collect_cv_predictions(
+    cv_results_05["pipeline"], ts_cv_5, predictions_gbrt_05, prediction_time
+)
+cv_predictions_50 = collect_cv_predictions(
+    cv_results_50["pipeline"], ts_cv_5, predictions_gbrt_50, prediction_time
+)
+cv_predictions_95 = collect_cv_predictions(
+    cv_results_95["pipeline"], ts_cv_5, predictions_gbrt_95, prediction_time
+)
+
+# %%
+plot_residuals_vs_predicted(cv_predictions_05).interactive().properties(
     title=(
         "Residuals vs Predicted Values from cross-validation predictions"
         " for quantile 0.05"
@@ -1699,27 +1706,24 @@ plot_residuals_vs_predicted(
 )
 
 # %%
-plot_residuals_vs_predicted(
-    collect_cv_predictions(
-        cv_results_50["pipeline"], ts_cv_5, predictions_gbrt_50, prediction_time
-    )
-).interactive().properties(
+plot_residuals_vs_predicted(cv_predictions_50).interactive().properties(
     title=(
         "Residuals vs Predicted Values from cross-validation predictions" " for median"
     )
 )
 
 # %%
-plot_residuals_vs_predicted(
-    collect_cv_predictions(
-        cv_results_95["pipeline"], ts_cv_5, predictions_gbrt_95, prediction_time
-    )
-).interactive().properties(
+plot_residuals_vs_predicted(cv_predictions_95).interactive().properties(
     title=(
         "Residuals vs Predicted Values from cross-validation predictions"
         " for quantile 0.95"
     )
 )
+
+# %%
+cv_predictions_05_concat = pl.concat(cv_predictions_05, how="vertical")
+cv_predictions_50_concat = pl.concat(cv_predictions_50, how="vertical")
+cv_predictions_95_concat = pl.concat(cv_predictions_95, how="vertical")
 
 # %%
 import matplotlib.pyplot as plt
@@ -1730,24 +1734,24 @@ for kind in ["actual_vs_predicted", "residual_vs_predicted"]:
     fig, axs = plt.subplots(1, 3, figsize=(15, 5), sharey=True)
 
     PredictionErrorDisplay.from_predictions(
-        y_true=targets["load_mw_horizon_24h"].skb.eval().to_numpy(),
-        y_pred=predictions_gbrt_05["load_mw_horizon_24h"].skb.eval().to_numpy(),
+        y_true=cv_predictions_05_concat["load_mw"].to_numpy(),
+        y_pred=cv_predictions_05_concat["predicted_load_mw"].to_numpy(),
         kind=kind,
         ax=axs[0],
     )
     axs[0].set_title("0.05 quantile regression")
 
     PredictionErrorDisplay.from_predictions(
-        y_true=targets["load_mw_horizon_24h"].skb.eval().to_numpy(),
-        y_pred=predictions_gbrt_50["load_mw_horizon_24h"].skb.eval().to_numpy(),
+        y_true=cv_predictions_50_concat["load_mw"].to_numpy(),
+        y_pred=cv_predictions_50_concat["predicted_load_mw"].to_numpy(),
         kind=kind,
         ax=axs[1],
     )
     axs[1].set_title("Median regression")
 
     PredictionErrorDisplay.from_predictions(
-        y_true=targets["load_mw_horizon_24h"].skb.eval().to_numpy(),
-        y_pred=predictions_gbrt_95["load_mw_horizon_24h"].skb.eval().to_numpy(),
+        y_true=cv_predictions_95_concat["load_mw"].to_numpy(),
+        y_pred=cv_predictions_95_concat["predicted_load_mw"].to_numpy(),
         kind=kind,
         ax=axs[2],
     )
@@ -1757,7 +1761,7 @@ for kind in ["actual_vs_predicted", "residual_vs_predicted"]:
 
 
 # %%
-def coverage_score(y_true, y_quantile_low, y_quantile_high):
+def coverage(y_true, y_quantile_low, y_quantile_high):
     y_true = np.asarray(y_true)
     y_quantile_low = np.asarray(y_quantile_low)
     y_quantile_high = np.asarray(y_quantile_high)
@@ -1768,28 +1772,126 @@ def coverage_score(y_true, y_quantile_low, y_quantile_high):
     )
 
 
-def width_score(y_true, y_quantile_low, y_quantile_high):
+def mean_width(y_true, y_quantile_low, y_quantile_high):
     y_true = np.asarray(y_true)
     y_quantile_low = np.asarray(y_quantile_low)
     y_quantile_high = np.asarray(y_quantile_high)
     return float(np.abs(y_quantile_high - y_quantile_low).mean().round(1))
 
 
+def binned_coverage(bin_by, y_quantile_low, y_quantile_high, n_bins=10):
+    """Compute coverage after binning `bin_by` values using quantile-based binning.
+
+    Parameters
+    ----------
+    bin_by : numpy.ndarray
+        Values to use for binning (e.g., true target values)
+    y_quantile_low : list of numpy.ndarray
+        List of lower quantile predictions, one array per CV fold
+    y_quantile_high : list of numpy.ndarray
+        List of upper quantile predictions, one array per CV fold
+    n_bins : int, default=10
+        Number of bins to create
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame with columns: bin_left, bin_right, bin_center, fold_idx,
+        coverage, mean_width, n_samples
+    """
+    bin_by = np.asarray(bin_by)
+
+    # Convert list elements to numpy arrays
+    y_quantile_low = [np.asarray(arr) for arr in y_quantile_low]
+    y_quantile_high = [np.asarray(arr) for arr in y_quantile_high]
+
+    # Check that all arrays have the same length
+    n_samples = len(bin_by)
+    for i, (low, high) in enumerate(zip(y_quantile_low, y_quantile_high)):
+        if len(low) != n_samples or len(high) != n_samples:
+            raise ValueError(f"All arrays must have the same length. "
+                           f"bin_by has length {n_samples}, but fold {i} has "
+                           f"lengths {len(low)} and {len(high)}")
+
+    # Create bins based on bin_by values
+    df = pd.DataFrame({"bin_by": bin_by})
+    df["bin"] = pd.qcut(df["bin_by"], q=n_bins, labels=False, duplicates="drop")
+
+    results = []
+    n_folds = len(y_quantile_low)
+
+    # For each bin
+    for bin_idx in sorted(df["bin"].dropna().unique()):
+        bin_mask = df["bin"] == bin_idx
+        bin_indices = np.where(bin_mask)[0]
+
+        bin_values = df.loc[bin_mask, "bin_by"]
+        bin_left = bin_values.min()
+        bin_right = bin_values.max()
+        bin_center = (bin_left + bin_right) / 2
+        n_samples_in_bin = len(bin_indices)
+
+        # For each CV fold
+        for fold_idx in range(n_folds):
+            # Get the values for this fold and this bin
+            fold_bin_by = bin_by[bin_indices]
+            fold_low = y_quantile_low[fold_idx][bin_indices]
+            fold_high = y_quantile_high[fold_idx][bin_indices]
+
+            # Compute coverage and mean width for this fold and bin
+            coverage_score = coverage(fold_bin_by, fold_low, fold_high)
+            width = mean_width(fold_bin_by, fold_low, fold_high)
+
+            results.append({
+                "bin_left": bin_left,
+                "bin_right": bin_right,
+                "bin_center": bin_center,
+                "fold_idx": fold_idx,
+                "coverage": coverage_score,
+                "mean_width": width,
+                "n_samples": n_samples_in_bin,
+            })
+
+    return pd.DataFrame(results)
+
+
 # %%
-coverage_score(
-    targets["load_mw_horizon_24h"].skb.eval().to_numpy(),
-    predictions_gbrt_05["load_mw_horizon_24h"].skb.eval().to_numpy(),
-    predictions_gbrt_95["load_mw_horizon_24h"].skb.eval().to_numpy(),
+coverage(
+    cv_predictions_50_concat["load_mw"].to_numpy(),
+    cv_predictions_05_concat["predicted_load_mw"].to_numpy(),
+    cv_predictions_95_concat["predicted_load_mw"].to_numpy(),
 )
 
 # %%
-width_score(
-    targets["load_mw_horizon_24h"].skb.eval().to_numpy(),
-    predictions_gbrt_05["load_mw_horizon_24h"].skb.eval().to_numpy(),
-    predictions_gbrt_95["load_mw_horizon_24h"].skb.eval().to_numpy(),
+mean_width(
+    cv_predictions_50_concat["load_mw"].to_numpy(),
+    cv_predictions_05_concat["predicted_load_mw"].to_numpy(),
+    cv_predictions_95_concat["predicted_load_mw"].to_numpy(),
 )
 
+# Compute binned coverage scores
+binned_coverage_results = binned_coverage(
+    cv_predictions_50_concat["load_mw"].to_numpy(),
+    cv_predictions_05_concat["predicted_load_mw"].to_numpy(),
+    cv_predictions_95_concat["predicted_load_mw"].to_numpy(),
+    n_bins=10,
+)
+
+binned_coverage_results
+
 # %%
+# Create horizontal bar plots for binned coverage results using matplotlib via pandas
+ax = binned_coverage_results["coverage"].plot.bar()
+ax.axhline(y=0.9, color="black", linestyle="--")
+for i, v in enumerate(binned_coverage_results["coverage"]):
+    ax.text(i, v, f"{v:.3f}", ha="center", va="bottom")
+_ = ax.set_xticklabels(
+    [
+        f"[{row.bin_left:.0f}, {row.bin_right:.0f}]"
+        for _, row in binned_coverage_results.iterrows()
+    ],
+    rotation=45,
+)
 
 # %% [markdown]
 #
