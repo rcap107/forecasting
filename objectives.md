@@ -3,8 +3,10 @@ TODO list:
 
 - write narrative everywhere
 - write exercise instructions + code + placeholder + solution marker
+- maybe try to swap RandomForestRegressor by XGBoost 
 - finish uncertainty section quantile regression as classification
 - extract plotting functions in a helper module
+- enable subsampling on the features and targets or maybe on the `prediction_time` node.
 
 
 ## h=1 model design and evaluation
@@ -74,7 +76,7 @@ TODO list:
 - Using sample weights to deal with contiguous data quality problems.
 
 
-## Exercises
+## Exercises ideas
 
 - Exercise: pipeline with missing value support: SimpleImputer with
   indicator, Spline, Nystroem, RidgeCV or TableVectorizer
