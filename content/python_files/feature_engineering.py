@@ -952,7 +952,7 @@ def plot_reliability_diagram(
 
         if kind == "mean":
             y_name = "mean_load_mw"
-            agg_expr = pl.col("load_mw")
+            agg_expr = pl.col("load_mw").mean()
         elif kind == "quantile":
             y_name = "quantile_of_load_mw"
             agg_expr = (
@@ -1601,14 +1601,14 @@ for metric_name, dataset_type in itertools.product(["mape", "r2"], ["train", "te
     display(chart)
 
 # %%
-from sklearn.metrics import mean_pinball_loss
+from sklearn.metrics import d2_pinball_score
 
 scoring = {
     "r2": get_scorer("r2"),
     "mape": make_scorer(mean_absolute_percentage_error),
-    "mean_pinball_05_loss": make_scorer(mean_pinball_loss, alpha=0.05),
-    "mean_pinball_50_loss": make_scorer(mean_pinball_loss, alpha=0.5),
-    "mean_pinball_95_loss": make_scorer(mean_pinball_loss, alpha=0.95),
+    "d2_pinball_05_loss": make_scorer(d2_pinball_score, alpha=0.05),
+    "d2_pinball_50_loss": make_scorer(d2_pinball_score, alpha=0.5),
+    "d2_pinball_95_loss": make_scorer(d2_pinball_score, alpha=0.95),
 }
 
 # %%
