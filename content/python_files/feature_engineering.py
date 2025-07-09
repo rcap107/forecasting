@@ -987,6 +987,9 @@ def plot_residuals_vs_predicted(cv_predictions):
     """Plot residuals vs predicted values scatter plot for all CV folds."""
     all_scatter_plots = []
 
+    x_title = "Predicted Load (MW)"
+    y_title = "Residual load (MW): predicted - actual"
+
     for i, cv_prediction in enumerate(cv_predictions):
         # Get date range for this CV fold
         min_date = cv_prediction["prediction_time"].min().strftime("%Y-%m-%d")
@@ -1005,10 +1008,10 @@ def plot_residuals_vs_predicted(cv_predictions):
             .encode(
                 x=altair.X(
                     "predicted_load_mw:Q",
-                    title="Predicted Load (MW)",
+                    title=x_title,
                     scale=altair.Scale(zero=False),
                 ),
-                y=altair.Y("residual:Q", title="Residual (MW)"),
+                y=altair.Y("residual:Q", title=y_title),
                 color=altair.Color("fold_label:N", legend=None),
                 tooltip=[
                     "prediction_time:T",
@@ -1041,8 +1044,8 @@ def plot_residuals_vs_predicted(cv_predictions):
         )
         .mark_line(strokeDash=[5, 5], opacity=0.8, color="black")
         .encode(
-            x=altair.X("predicted_load_mw:Q", title="Predicted Load (MW)"),
-            y=altair.Y("perfect_residual:Q", title="Residual (MW)"),
+            x=altair.X("predicted_load_mw:Q", title=x_title),
+            y=altair.Y("perfect_residual:Q", title=y_title),
             color=altair.Color(
                 "label:N",
                 scale=altair.Scale(range=["black"]),
@@ -1050,7 +1053,6 @@ def plot_residuals_vs_predicted(cv_predictions):
             ),
         )
     )
-
     # Combine all scatter plots
     combined_scatter = all_scatter_plots[0]
     for plot in all_scatter_plots[1:]:
@@ -1329,7 +1331,7 @@ cv_results_ridge = predictions_ridge.skb.cross_validate(
     cv=ts_cv_5,
     scoring={
         "r2": get_scorer("r2"),
-        "mape": make_scorer(mean_absolute_percentage_error)
+        "mape": make_scorer(mean_absolute_percentage_error),
     },
     return_train_score=True,
     return_pipeline=True,
