@@ -67,7 +67,7 @@ def lorenz_curve(observed_value, predicted_value, n_samples=1_000):
     )
 
 
-def plot_lorenz_curve(cv_predictions, n_samples=1_000):
+def plot_lorenz_curve(cv_predictions, n_samples=500):
     """Plot the Lorenz curve for a given cross-validation results containing
     observed and predicted values.
 
@@ -76,7 +76,7 @@ def plot_lorenz_curve(cv_predictions, n_samples=1_000):
     cv_predictions : list of polars.DataFrame
         A list of polars DataFrames, each containing the observed and predicted values
         for a given fold. It is the output of the `collect_cv_predictions` function.
-    n_samples : int, default=1_000
+    n_samples : int, default=500
         The number of samples to use to compute the Lorenz curve.
 
     Returns

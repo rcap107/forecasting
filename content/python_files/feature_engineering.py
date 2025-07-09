@@ -790,7 +790,7 @@ hgbr_cv_predictions = collect_cv_predictions(
 hgbr_cv_predictions[0]
 
 # %%
-plot_lorenz_curve(hgbr_cv_predictions, n_samples=500).interactive()
+plot_lorenz_curve(hgbr_cv_predictions).interactive()
 
 # %%
 plot_reliability_diagram(hgbr_cv_predictions).interactive().properties(
@@ -1006,10 +1006,12 @@ cv_results_ridge = predictions_ridge.skb.cross_validate(
 
 # %% [markdown]
 #
-# Call all cross-validated predictions to plot the Lorenz curve and the reliability
-# diagram. Call the function `collect_cv_predictions` to collect the predictions and
-# then call the `plot_lorenz_curve` and `plot_reliability_diagram` functions to plot
-# the results.
+# Compute all cross-validated predictions to plot the Lorenz curve and the
+# reliability diagram for this pipeline.
+#
+# To do so, you can use the function `collect_cv_predictions` to collect the
+# predictions and then call the `plot_lorenz_curve` and
+# `plot_reliability_diagram` functions to plot the results.
 
 # %%
 # Write your code here.
@@ -1031,7 +1033,7 @@ cv_predictions_ridge = collect_cv_predictions(
 )
 
 # %%
-plot_lorenz_curve(cv_predictions_ridge, n_samples=500).interactive()
+plot_lorenz_curve(cv_predictions_ridge).interactive()
 
 # %%
 plot_reliability_diagram(cv_predictions_ridge).interactive().properties(
