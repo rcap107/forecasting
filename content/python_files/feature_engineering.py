@@ -18,11 +18,12 @@
 # holidays and calendar features are known at prediction time for any point in
 # the future.
 #
-# Therefore, features derived from the weather and calendar data can be used to
-# engineer "future covariates". Since the load data is our prediction target,
-# we will can also use it to engineer "past covariates" such as lagged features
-# and rolling aggregations. The future values of the load data (with respect to
-# the prediction time) are used as targets for the forecasting model.
+# Therefore, exogenous features derived from the weather and calendar data can
+# be used to engineer "future covariates". Since the load data is our
+# prediction target, we will can also use it to engineer "past covariates" such
+# as lagged features and rolling aggregations. The future values of the load
+# data (with respect to the prediction time) are used as targets for the
+# forecasting model.
 #
 # ## Environment setup
 #
