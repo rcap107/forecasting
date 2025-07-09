@@ -1043,25 +1043,9 @@ plot_reliability_diagram(cv_predictions_ridge).interactive().properties(
 
 # %% [markdown]
 #
-# Now, you can perform a randomized search on the hyper-parameters of the model.
-# Use the `ts_cv_2` splitter defined earlier. This search is quite computationally
-# expensive, so feel free to reduce the number of iterations but doing at least 100
-# iterations is nice to have an overview of the impact of the hyper-parameters.
-# Use `plot_results` to show the parallel coordinates plot of the results.
-
-# %%
-# Write your code here.
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
+# Now, let's perform a randomized search on the hyper-parameters of the model. The code
+# to perform the search is shown below. Since it will be pretty computationally
+# expensive, we are reloading the results of the parallel coordinates plot.
 
 # %%
 randomized_search_ridge = predictions_ridge.skb.get_randomized_search(
@@ -1074,7 +1058,15 @@ randomized_search_ridge = predictions_ridge.skb.get_randomized_search(
 )
 
 # %%
-randomized_search_ridge.plot_results().update_layout(margin=dict(l=200))
+# from plotly.io import write_json
+
+# fig = randomized_search_ridge.plot_results().update_layout(margin=dict(l=200))
+# write_json(fig, "parallel_coordinates_ridge.json")
+
+# %%
+from plotly.io import read_json
+fig = read_json("parallel_coordinates_ridge.json")
+fig.update_layout(margin=dict(l=200))
 
 # %% [markdown]
 #
