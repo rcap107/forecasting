@@ -2,11 +2,12 @@
 TODO list:
 
 - write narrative everywhere
-- write exercise instructions + code + placeholder + solution marker
-- maybe try to swap RandomForestRegressor by XGBoost 
+  - Need to define the difference between poisson, and gamma D2 scores.
+- **DONE** write exercise instructions + code + placeholder + solution marker
+- **DONE**maybe try to swap RandomForestRegressor by XGBoost
 - finish uncertainty section quantile regression as classification
-- extract plotting functions in a helper module
-- enable subsampling on the features and targets or maybe on the `prediction_time` node.
+- **DONE** extract plotting functions in a helper module
+- **DONE** enable subsampling on the features and targets or maybe on the `prediction_time` node.
 
 
 ## h=1 model design and evaluation
