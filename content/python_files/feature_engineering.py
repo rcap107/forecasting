@@ -1923,6 +1923,7 @@ plot_reliability_diagram(
     title="Reliability diagram for quantile 0.95 from cross-validation predictions"
 )
 
+# %%
 ax = coverage_by_bin.boxplot(
     column="coverage", by="bin_label", figsize=(12, 6), vert=False, whis=1000
 )
