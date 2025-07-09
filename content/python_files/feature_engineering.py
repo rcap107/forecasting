@@ -906,7 +906,9 @@ plot_lorenz_curve(cv_predictions, n_samples=500).interactive()
 
 
 # %%
-def plot_reliability_diagram(cv_predictions, n_bins=10):
+def plot_reliability_diagram(
+    cv_predictions, kind="mean", quantile_level=0.5, n_bins=10
+):
     # min and max load over all predictions and observations for any folds:
     all_loads = pl.concat(
         [
@@ -948,13 +950,24 @@ def plot_reliability_diagram(cv_predictions, n_bins=10):
         max_date = cv_predictions_i["prediction_time"].max().strftime("%Y-%m-%d")
         fold_label = f"#{fold_idx} - {min_date} to {max_date}"
 
+        if kind == "mean":
+            y_name = "mean_load_mw"
+            agg_expr = pl.col("load_mw")
+        elif kind == "quantile":
+            y_name = "quantile_of_load_mw"
+            agg_expr = (
+                pl.col("load_mw").quantile(quantile_level)
+            )
+        else:
+            raise ValueError(f"Unknown kind: {kind}. Use 'mean' or 'quantile'.")
+
         mean_per_bins = (
             cv_predictions_i.group_by(
                 pl.col("predicted_load_mw").qcut(np.linspace(0, 1, n_bins))
             )
             .agg(
                 [
-                    pl.col("load_mw").mean().alias("mean_load_mw"),
+                    agg_expr.alias(y_name),
                     pl.col("predicted_load_mw").mean().alias("mean_predicted_load_mw"),
                 ]
             )
@@ -967,7 +980,7 @@ def plot_reliability_diagram(cv_predictions, n_bins=10):
             .mark_line(tooltip=True, point=True, opacity=0.8)
             .encode(
                 x=altair.X("mean_predicted_load_mw:Q", scale=scale),
-                y=altair.Y("mean_load_mw:Q", scale=scale),
+                y=altair.Y(f"{y_name}:Q", scale=scale),
                 color=altair.Color(
                     "fold_label:N",
                     legend=altair.Legend(title=None),
@@ -1809,9 +1822,11 @@ def binned_coverage(bin_by, y_quantile_low, y_quantile_high, n_bins=10):
     n_samples = len(bin_by)
     for i, (low, high) in enumerate(zip(y_quantile_low, y_quantile_high)):
         if len(low) != n_samples or len(high) != n_samples:
-            raise ValueError(f"All arrays must have the same length. "
-                           f"bin_by has length {n_samples}, but fold {i} has "
-                           f"lengths {len(low)} and {len(high)}")
+            raise ValueError(
+                f"All arrays must have the same length. "
+                f"bin_by has length {n_samples}, but fold {i} has "
+                f"lengths {len(low)} and {len(high)}"
+            )
 
     # Create bins based on bin_by values
     df = pd.DataFrame({"bin_by": bin_by})
@@ -1842,15 +1857,17 @@ def binned_coverage(bin_by, y_quantile_low, y_quantile_high, n_bins=10):
             coverage_score = coverage(fold_bin_by, fold_low, fold_high)
             width = mean_width(fold_bin_by, fold_low, fold_high)
 
-            results.append({
-                "bin_left": bin_left,
-                "bin_right": bin_right,
-                "bin_center": bin_center,
-                "fold_idx": fold_idx,
-                "coverage": coverage_score,
-                "mean_width": width,
-                "n_samples": n_samples_in_bin,
-            })
+            results.append(
+                {
+                    "bin_left": bin_left,
+                    "bin_right": bin_right,
+                    "bin_center": bin_center,
+                    "fold_idx": fold_idx,
+                    "coverage": coverage_score,
+                    "mean_width": width,
+                    "n_samples": n_samples_in_bin,
+                }
+            )
 
     return pd.DataFrame(results)
 
@@ -1891,6 +1908,30 @@ _ = ax.set_xticklabels(
         for _, row in binned_coverage_results.iterrows()
     ],
     rotation=45,
+)
+# %% [markdown]
+#
+# ## Reliability diagram for quantile regression
+
+# %%
+plot_reliability_diagram(
+    cv_predictions_50, kind="quantile", quantile_level=0.50
+).interactive().properties(
+    title="Reliability diagram for quantile 0.50 from cross-validation predictions"
+)
+
+# %%
+plot_reliability_diagram(
+    cv_predictions_05, kind="quantile", quantile_level=0.05
+).interactive().properties(
+    title="Reliability diagram for quantile 0.05 from cross-validation predictions"
+)
+
+# %%
+plot_reliability_diagram(
+    cv_predictions_95, kind="quantile", quantile_level=0.95
+).interactive().properties(
+    title="Reliability diagram for quantile 0.95 from cross-validation predictions"
 )
 
 # %% [markdown]
