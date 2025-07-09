@@ -1,8 +1,16 @@
 
+TODO list:
+
+- write narrative everywhere
+- write exercise instructions + code + placeholder + solution marker
+- finish uncertainty section quantile regression as classification
+- extract plotting functions in a helper module
+
+
 ## h=1 model design and evaluation
 
 - Use dataframes / skrub to fetch and align time-structured data source to
-  build exogeneous features that are available for the forecast horizon of
+  build exogenous features that are available for the forecast horizon of
   choice at the time of prediction.
 - Use skrub expressions to be able to do model selection on the pipeline steps:
     - lag variables included or not and lag amount
@@ -21,13 +29,13 @@
     - use a skrub choice tree + builtin random search
 - Train a t+1 prediction model and evaluate it:
     - Time-aware cross-validation.
-    - MSE/R2, Tweedie deviance ou MAPE.
+    - MSE/R2, Tweedie deviance or MAPIE.
     - Lorenz curve
     - reliability diagram
     - Binned residual analysis
     - models:
         - HGBDR
-        - **TODO** Exercise: pipeline with missing value support: SimpleImputer with
+        - Exercise: pipeline with missing value support: SimpleImputer with
           indicator, Spline, Nystroem, RidgeCV or TableVectorizer
             - hyper tuning + per analysis of the CV results of the best model.
 
