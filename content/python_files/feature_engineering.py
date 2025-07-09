@@ -1792,13 +1792,13 @@ def mean_width(y_true, y_quantile_low, y_quantile_high):
     return float(np.abs(y_quantile_high - y_quantile_low).mean().round(1))
 
 
-def binned_coverage(bin_by, y_quantile_low, y_quantile_high, n_bins=10):
-    """Compute coverage after binning `bin_by` values using quantile-based binning.
+def binned_coverage(y_true_folds, y_quantile_low, y_quantile_high, n_bins=10):
+    """Compute coverage after binning true values using quantile-based binning.
 
     Parameters
     ----------
-    bin_by : numpy.ndarray
-        Values to use for binning (e.g., true target values)
+    y_true_folds : list of numpy.ndarray
+        List of true target values, one array per CV fold
     y_quantile_low : list of numpy.ndarray
         List of lower quantile predictions, one array per CV fold
     y_quantile_high : list of numpy.ndarray
@@ -1812,50 +1812,48 @@ def binned_coverage(bin_by, y_quantile_low, y_quantile_high, n_bins=10):
         DataFrame with columns: bin_left, bin_right, bin_center, fold_idx,
         coverage, mean_width, n_samples
     """
-    bin_by = np.asarray(bin_by)
-
-    # Convert list elements to numpy arrays
-    y_quantile_low = [np.asarray(arr) for arr in y_quantile_low]
-    y_quantile_high = [np.asarray(arr) for arr in y_quantile_high]
-
-    # Check that all arrays have the same length
-    n_samples = len(bin_by)
-    for i, (low, high) in enumerate(zip(y_quantile_low, y_quantile_high)):
-        if len(low) != n_samples or len(high) != n_samples:
-            raise ValueError(
-                f"All arrays must have the same length. "
-                f"bin_by has length {n_samples}, but fold {i} has "
-                f"lengths {len(low)} and {len(high)}"
-            )
-
-    # Create bins based on bin_by values
-    df = pd.DataFrame({"bin_by": bin_by})
+    # Use all true values to define global bin boundaries
+    all_true_values = np.concatenate(y_true_folds)
+    df = pd.DataFrame({"bin_by": all_true_values})
     df["bin"] = pd.qcut(df["bin_by"], q=n_bins, labels=False, duplicates="drop")
+
+    # Get bin boundaries for consistent binning across folds
+    bin_boundaries = []
+    for bin_idx in sorted(df["bin"].dropna().unique()):
+        bin_mask = df["bin"] == bin_idx
+        bin_values = df.loc[bin_mask, "bin_by"]
+        bin_boundaries.append((bin_values.min(), bin_values.max()))
 
     results = []
     n_folds = len(y_quantile_low)
 
-    # For each bin
-    for bin_idx in sorted(df["bin"].dropna().unique()):
-        bin_mask = df["bin"] == bin_idx
-        bin_indices = np.where(bin_mask)[0]
+    for fold_idx in range(n_folds):
+        fold_true = y_true_folds[fold_idx]
+        fold_low = y_quantile_low[fold_idx]
+        fold_high = y_quantile_high[fold_idx]
 
-        bin_values = df.loc[bin_mask, "bin_by"]
-        bin_left = bin_values.min()
-        bin_right = bin_values.max()
-        bin_center = (bin_left + bin_right) / 2
-        n_samples_in_bin = len(bin_indices)
+        # Assign each sample in this fold to a bin
+        fold_bins = (
+            np.digitize(fold_true, bins=[b[0] for b in bin_boundaries] + [np.inf]) - 1
+        )
 
-        # For each CV fold
-        for fold_idx in range(n_folds):
-            # Get the values for this fold and this bin
-            fold_bin_by = bin_by[bin_indices]
-            fold_low = y_quantile_low[fold_idx][bin_indices]
-            fold_high = y_quantile_high[fold_idx][bin_indices]
+        for bin_idx, (bin_left, bin_right) in enumerate(bin_boundaries):
+            # Get samples from this fold that fall into this bin
+            bin_mask = fold_bins == bin_idx
 
-            # Compute coverage and mean width for this fold and bin
-            coverage_score = coverage(fold_bin_by, fold_low, fold_high)
-            width = mean_width(fold_bin_by, fold_low, fold_high)
+            if np.sum(bin_mask) == 0:
+                # No samples in this bin for this fold
+                continue
+
+            fold_bin_true = fold_true[bin_mask]
+            fold_bin_low = fold_low[bin_mask]
+            fold_bin_high = fold_high[bin_mask]
+
+            bin_center = (bin_left + bin_right) / 2
+            n_samples_in_bin = len(fold_bin_true)
+
+            coverage_score = coverage(fold_bin_true, fold_bin_low, fold_bin_high)
+            width = mean_width(fold_bin_true, fold_bin_low, fold_bin_high)
 
             results.append(
                 {
@@ -1879,7 +1877,6 @@ coverage(
     cv_predictions_95_concat["predicted_load_mw"].to_numpy(),
 )
 
-# %%
 mean_width(
     cv_predictions_50_concat["load_mw"].to_numpy(),
     cv_predictions_05_concat["predicted_load_mw"].to_numpy(),
@@ -1888,26 +1885,18 @@ mean_width(
 
 # Compute binned coverage scores
 binned_coverage_results = binned_coverage(
-    cv_predictions_50_concat["load_mw"].to_numpy(),
-    cv_predictions_05_concat["predicted_load_mw"].to_numpy(),
-    cv_predictions_95_concat["predicted_load_mw"].to_numpy(),
+    [df["load_mw"].to_numpy() for df in cv_predictions_50],
+    [df["predicted_load_mw"].to_numpy() for df in cv_predictions_05],
+    [df["predicted_load_mw"].to_numpy() for df in cv_predictions_95],
     n_bins=10,
 )
 
 binned_coverage_results
 
 # %%
-# Create horizontal bar plots for binned coverage results using matplotlib via pandas
-ax = binned_coverage_results["coverage"].plot.bar()
-ax.axhline(y=0.9, color="black", linestyle="--")
-for i, v in enumerate(binned_coverage_results["coverage"]):
-    ax.text(i, v, f"{v:.3f}", ha="center", va="bottom")
-_ = ax.set_xticklabels(
-    [
-        f"[{row.bin_left:.0f}, {row.bin_right:.0f}]"
-        for _, row in binned_coverage_results.iterrows()
-    ],
-    rotation=45,
+coverage_by_bin = binned_coverage_results.copy()
+coverage_by_bin["bin_label"] = coverage_by_bin.apply(
+    lambda row: f"[{row.bin_left:.0f}, {row.bin_right:.0f}]", axis=1
 )
 # %% [markdown]
 #
@@ -1933,6 +1922,18 @@ plot_reliability_diagram(
 ).interactive().properties(
     title="Reliability diagram for quantile 0.95 from cross-validation predictions"
 )
+
+ax = coverage_by_bin.boxplot(
+    column="coverage", by="bin_label", figsize=(12, 6), vert=False, whis=1000
+)
+ax.axvline(x=0.9, color="red", linestyle="--", label="Target coverage (0.9)")
+ax.set_xlabel("Load bins (MW)")
+ax.set_ylabel("Coverage")
+ax.set_title("Coverage Distribution by Load Bins")
+ax.legend()
+plt.suptitle("")  # Remove automatic suptitle from boxplot
+plt.xticks(rotation=45)
+plt.tight_layout()
 
 # %% [markdown]
 #
