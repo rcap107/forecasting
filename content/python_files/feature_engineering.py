@@ -1202,7 +1202,7 @@ plot_binned_residuals(cv_predictions, by="month").interactive().properties(
 ts_cv_2 = TimeSeriesSplit(
     n_splits=2, test_size=test_size, max_train_size=max_train_size, gap=24
 )
-randomized_search = hgbr_predictions.skb.get_randomized_search(
+randomized_search_ridge = hgbr_predictions.skb.get_randomized_search(
     cv=ts_cv_2,
     scoring="r2",
     n_iter=100,
@@ -1211,10 +1211,10 @@ randomized_search = hgbr_predictions.skb.get_randomized_search(
     n_jobs=-1,
 )
 # %%
-randomized_search.results_.round(3)
+randomized_search_ridge.results_.round(3)
 
 # %%
-randomized_search.plot_results().update_layout(margin=dict(l=150))
+randomized_search_ridge.plot_results().update_layout(margin=dict(l=150))
 
 # %%
 # nested_cv_results = skrub.cross_validate(
@@ -1240,18 +1240,24 @@ randomized_search.plot_results().update_layout(margin=dict(l=150))
 #     )
 
 # %%
-# TODO: Exercise applying a a linear model with some additional feature engineering
+# TODO: Exercise applying a linear model with some additional feature engineering
 from sklearn.linear_model import Ridge
 from sklearn.kernel_approximation import Nystroem
 
 model = skrub.tabular_learner(
-    estimator=Ridge(alpha=skrub.choose_float(1e-6, 1e6, log=True, default=1e-3))
+    estimator=Ridge(
+        alpha=skrub.choose_float(1e-6, 1e6, log=True, name="alpha", default=1e-3)
+    )
 )
 model.steps.insert(
     -1,
     (
         "nystroem",
-        Nystroem(n_components=skrub.choose_int(10, 200, log=True, default=150)),
+        Nystroem(
+            n_components=skrub.choose_int(
+                10, 200, log=True, name="n_components", default=150
+            )
+        ),
     ),
 )
 
@@ -1278,10 +1284,7 @@ altair.Chart(
 ).interactive()
 
 # %%
-ts_cv_2 = TimeSeriesSplit(
-    n_splits=2, test_size=test_size, max_train_size=max_train_size, gap=24
-)
-randomized_search = predictions_ridge.skb.get_randomized_search(
+randomized_search_ridge = predictions_ridge.skb.get_randomized_search(
     cv=ts_cv_2,
     scoring="r2",
     n_iter=100,
@@ -1291,27 +1294,53 @@ randomized_search = predictions_ridge.skb.get_randomized_search(
 )
 
 # %%
-randomized_search.plot_results().update_layout(margin=dict(l=200))
+randomized_search_ridge.plot_results().update_layout(margin=dict(l=200))
+
+# %% [markdown]
+#
+# We observe that the default values of the hyper-parameters are in the optimal
+# region explored by the randomized search. This is a good sign that the model
+# is well-specified and that the hyper-parameters are not too sensitive to
+# small changes of those values.
+#
+# We could further assess the stability of those optimal hyper-parameters by
+# running a nested cross-validation, where we would perform a randomized search
+# for each fold of the outer cross-validation loop as below but this is
+# computationally expensive.
+
+# # %%
+# nested_cv_results_ridge = skrub.cross_validate(
+#     environment=predictions_ridge.skb.get_data(),
+#     pipeline=randomized_search_ridge,
+#     cv=ts_cv_5,
+#     scoring={
+#         "r2": get_scorer("r2"),
+#         "mape": make_scorer(mean_absolute_percentage_error),
+#     },
+#     n_jobs=-1,
+#     return_pipeline=True,
+# ).round(3)
+
+# # %%
+# nested_cv_results_ridge.round(3)
 
 # %%
-nested_cv_results = skrub.cross_validate(
-    environment=predictions_ridge.skb.get_data(),
-    pipeline=randomized_search,
+cv_results_ridge = predictions_ridge.skb.cross_validate(
     cv=ts_cv_5,
     scoring={
         "r2": get_scorer("r2"),
-        "mape": make_scorer(mean_absolute_percentage_error),
+        "mape": make_scorer(mean_absolute_percentage_error)
     },
-    n_jobs=-1,
+    return_train_score=True,
     return_pipeline=True,
-).round(3)
+    verbose=1,
+    n_jobs=-1,
+)
 
-# %%
-nested_cv_results.round(3)
 
 # %%
 cv_predictions_ridge = collect_cv_predictions(
-    nested_cv_results["pipeline"], ts_cv_5, predictions_ridge, prediction_time
+    cv_results_ridge["pipeline"], ts_cv_5, predictions_ridge, prediction_time
 )
 
 # %%
