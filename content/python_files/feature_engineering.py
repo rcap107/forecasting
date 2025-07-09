@@ -1107,7 +1107,7 @@ multioutput_predictions = features_with_dropped_cols.skb.apply(
         estimator=HistGradientBoostingRegressor(random_state=0), n_jobs=-1
     ),
     y=targets.skb.drop(cols=["prediction_time", "load_mw"]).skb.mark_as_y(),
-).skb.set_name("multioutput_gbdt")
+).skb.set_name("multioutput_hgbr")
 
 # %%
 target_column_names = [target_column_name_pattern.format(horizon=h) for h in horizons]
@@ -1209,15 +1209,24 @@ for metric_name, dataset_type in itertools.product(["mape", "r2"], ["train", "te
 
     display(chart)
 
-# %%
-# TODO: Exercise using RandomForestRegressor
+# %% [markdown]
+#
+# ### Native multi-output handling using `RandomForestRegressor`
+#
+# In the previous section, we showed how to wrap a `HistGradientBoostingRegressor`
+# in a `MultiOutputRegressor` to predict multiple horizons. With such a strategy, it
+# means that we trained independent `HistGradientBoostingRegressor`, one for each
+# horizon.
+#
+# In this exercise, you will
+
 from sklearn.ensemble import RandomForestRegressor
 
 
 multioutput_predictions_rf = features_with_dropped_cols.skb.apply(
     RandomForestRegressor(min_samples_leaf=5, random_state=0, n_jobs=-1),
     y=targets.skb.drop(cols=["prediction_time", "load_mw"]).skb.mark_as_y(),
-).skb.set_name("random_forest")
+).skb.set_name("multioutput_rf")
 
 # %%
 named_predictions_rf = multioutput_predictions_rf.rename(
