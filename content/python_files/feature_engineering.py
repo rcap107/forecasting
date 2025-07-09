@@ -1528,7 +1528,7 @@ from sklearn.metrics import mean_pinball_loss
 
 scoring = {
     "r2": get_scorer("r2"),
-    "mape": mape_scorer,
+    "mape": make_scorer(mean_absolute_percentage_error),
     "mean_pinball_05_loss": make_scorer(mean_pinball_loss, alpha=0.05),
     "mean_pinball_50_loss": make_scorer(mean_pinball_loss, alpha=0.5),
     "mean_pinball_95_loss": make_scorer(mean_pinball_loss, alpha=0.95),
