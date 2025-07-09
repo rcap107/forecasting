@@ -24,8 +24,7 @@
     - MSE/R2, Tweedie deviance ou MAPE.
     - Lorenz curve
     - reliability diagram
-    - **TODO** residuals vs predicted
-    - Binned residual analysis (**TODO**: refactor common code and add perfect line + always blue) 
+    - Binned residual analysis
     - models:
         - HGBDR
         - **TODO** Exercise: pipeline with missing value support: SimpleImputer with
