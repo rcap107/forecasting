@@ -696,10 +696,10 @@ ts_cv_5 = TimeSeriesSplit(
     n_splits=5, max_train_size=max_train_size, test_size=test_size, gap=gap
 )
 
-for cv_idx, (train_idx, test_idx) in enumerate(
+for fold_idx, (train_idx, test_idx) in enumerate(
     ts_cv_5.split(prediction_time.skb.eval())
 ):
-    print(f"CV iteration #{cv_idx}")
+    print(f"CV iteration #{fold_idx}")
     train_datetimes = prediction_time.skb.eval()[train_idx]
     test_datetimes = prediction_time.skb.eval()[test_idx]
     print(
@@ -815,14 +815,14 @@ def plot_lorenz_curve(cv_predictions, n_samples=1_000):
     """Plot the Lorenz curve for a given true and predicted values."""
 
     results = []
-    for cv_idx, predictions in enumerate(cv_predictions):
+    for fold_idx, predictions in enumerate(cv_predictions):
         results.append(
             lorenz_curve(
                 observed_value=predictions["load_mw"],
                 predicted_value=predictions["predicted_load_mw"],
                 n_samples=n_samples,
             ).with_columns(
-                pl.lit(cv_idx).alias("cv_idx"),
+                pl.lit(fold_idx).alias("fold_idx"),
                 pl.lit("Model").alias("model"),
             )
         )
@@ -833,7 +833,7 @@ def plot_lorenz_curve(cv_predictions, n_samples=1_000):
                 predicted_value=predictions["load_mw"],
                 n_samples=n_samples,
             ).with_columns(
-                pl.lit(cv_idx).alias("cv_idx"),
+                pl.lit(fold_idx).alias("fold_idx"),
                 pl.lit("Oracle").alias("model"),
             )
         )
@@ -871,7 +871,7 @@ def plot_lorenz_curve(cv_predictions, n_samples=1_000):
             color=altair.Color(
                 "model_label:N", legend=altair.Legend(title="Models"), sort=None
             ),
-            detail="cv_idx:N",
+            detail="fold_idx:N",
         )
     )
 
@@ -941,11 +941,11 @@ def plot_reliability_diagram(cv_predictions, n_bins=10):
     )
 
     # Add lines for each CV fold with date labels
-    for i, cv_predictions_i in enumerate(cv_predictions):
+    for fold_idx, cv_predictions_i in enumerate(cv_predictions):
         # Get date range for this CV fold
         min_date = cv_predictions_i["prediction_time"].min().strftime("%Y-%m-%d")
         max_date = cv_predictions_i["prediction_time"].max().strftime("%Y-%m-%d")
-        fold_label = f"#{i+1} - {min_date} to {max_date}"
+        fold_label = f"#{fold_idx} - {min_date} to {max_date}"
 
         mean_per_bins = (
             cv_predictions_i.group_by(
@@ -958,7 +958,7 @@ def plot_reliability_diagram(cv_predictions, n_bins=10):
                 ]
             )
             .sort("predicted_load_mw")
-            .with_columns(pl.lit(fold_label).alias("fold"))
+            .with_columns(pl.lit(fold_label).alias("fold_label"))
         )
 
         chart += (
@@ -968,10 +968,10 @@ def plot_reliability_diagram(cv_predictions, n_bins=10):
                 x=altair.X("mean_predicted_load_mw:Q", scale=scale),
                 y=altair.Y("mean_load_mw:Q", scale=scale),
                 color=altair.Color(
-                    "fold:N",
+                    "fold_label:N",
                     legend=altair.Legend(title=None),
                 ),
-                detail=altair.Detail("fold:N"),
+                detail=altair.Detail("fold_label:N"),
             )
         )
     return chart.resolve_scale(color="independent")
@@ -996,7 +996,7 @@ def plot_residuals_vs_predicted(cv_predictions):
         # Calculate residuals
         residuals_data = cv_prediction.with_columns(
             [(pl.col("predicted_load_mw") - pl.col("load_mw")).alias("residual")]
-        ).with_columns([pl.lit(fold_label).alias("fold")])
+        ).with_columns([pl.lit(fold_label).alias("fold_label")])
 
         # Create scatter plot for this CV fold
         scatter_plot = (
@@ -1009,13 +1009,13 @@ def plot_residuals_vs_predicted(cv_predictions):
                     scale=altair.Scale(zero=False),
                 ),
                 y=altair.Y("residual:Q", title="Residual (MW)"),
-                color=altair.Color("fold:N", legend=None),
+                color=altair.Color("fold_label:N", legend=None),
                 tooltip=[
                     "prediction_time:T",
                     "load_mw:Q",
                     "predicted_load_mw:Q",
                     "residual:Q",
-                    "fold:N",
+                    "fold_label:N",
                 ],
             )
         )
@@ -1109,7 +1109,7 @@ def plot_binned_residuals(cv_predictions, by="hour"):
                 ]
             )
             .sort(time_column)
-            .with_columns(pl.lit(fold_label).alias("fold"))
+            .with_columns(pl.lit(fold_label).alias("fold_label"))
         )
 
         # Store time range for perfect line (use the first CV fold)
@@ -1141,8 +1141,8 @@ def plot_binned_residuals(cv_predictions, by="hour"):
             .encode(
                 x=altair.X(f"{time_column}:O", title=x_title),
                 y=altair.Y("mean_residual:Q", title="Mean residual (MW)"),
-                color=altair.Color("fold:N", legend=None),
-                detail="fold:N",
+                color=altair.Color("fold_label:N", legend=None),
+                detail="fold_label:N",
             )
         )
 
@@ -1231,9 +1231,9 @@ randomized_search_ridge.plot_results().update_layout(margin=dict(l=150))
 # nested_cv_results
 
 # %%
-# for outer_cv_idx in range(len(nested_cv_results)):
+# for outer_fold_idx in range(len(nested_cv_results)):
 #     print(
-#         nested_cv_results.loc[outer_cv_idx, "pipeline"]
+#         nested_cv_results.loc[outer_fold_idx, "pipeline"]
 #         .results_.loc[0]
 #         .round(3)
 #         .to_dict()
