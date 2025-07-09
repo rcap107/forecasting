@@ -14,7 +14,6 @@
 
         - iceberg / deltalake can explicitly record system lag info in
           historical data.
-        - **TODO** refactor to used deferred to get a more interpretable
     - windowing aggregates included or not and window size
     - weather features granularity
     - calendar features

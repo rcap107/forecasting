@@ -1311,7 +1311,7 @@ randomized_search_ridge.plot_results().update_layout(margin=dict(l=200))
 # for each fold of the outer cross-validation loop as below but this is
 # computationally expensive.
 
-# # %%
+# %%
 # nested_cv_results_ridge = skrub.cross_validate(
 #     environment=predictions_ridge.skb.get_data(),
 #     pipeline=randomized_search_ridge,
@@ -1324,7 +1324,7 @@ randomized_search_ridge.plot_results().update_layout(margin=dict(l=200))
 #     return_pipeline=True,
 # ).round(3)
 
-# # %%
+# %%
 # nested_cv_results_ridge.round(3)
 
 # %%
