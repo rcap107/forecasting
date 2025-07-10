@@ -1559,6 +1559,9 @@ results = pl.concat(
 # Now, we plot the observed values and the predicted median with a line. In addition,
 # we plot the 5th and 95th percentiles as a shaded area. It means that between those
 # two bounds, we expect to find 90% of the observed values.
+#
+# We plot this information on a portion of the training data to observe the uncertainty
+# quantification of the predictions.
 
 # %%
 median_chart = (
@@ -1585,6 +1588,16 @@ quantile_band_chart = (
 combined_chart = quantile_band_chart + median_chart
 combined_chart.resolve_scale(color="independent").interactive()
 
+# %% [markdown]
+#
+# While we should expend this plot on the test data and on several portions of the
+# dataset, we observe a potential interesting pattern: during the week days, the
+# 5th percentile is further from the median than during the weekend. However, for the
+# 95th percentile, the opposite is observed.
+#
+# Now, let's collect the cross-validated predictions and plot the residual vs predicted
+# values for the different models.
+
 # %%
 cv_predictions_hgbr_05 = collect_cv_predictions(
     cv_results_hgbr_05["pipeline"], ts_cv_5, predictions_hgbr_05, prediction_time
@@ -1607,7 +1620,7 @@ plot_residuals_vs_predicted(cv_predictions_hgbr_05).interactive().properties(
 # %%
 plot_residuals_vs_predicted(cv_predictions_hgbr_50).interactive().properties(
     title=(
-        "Residuals vs Predicted Values from cross-validation predictions" " for median"
+        "Residuals vs Predicted Values from cross-validation predictions for median"
     )
 )
 
@@ -1618,6 +1631,15 @@ plot_residuals_vs_predicted(cv_predictions_hgbr_95).interactive().properties(
         " for quantile 0.95"
     )
 )
+
+# %% [markdown]
+#
+# We observe an expected behaviour: the residuals are centered and symmetric around 0
+# for the median model while not centered and biased for the 5th and 95th percentiles
+# models.
+#
+# Note that we could obtain similar plots using scikit-learn's `PredictionErrorDisplay`.
+# This display allows to also plot the observed values vs predicted values as well.
 
 # %%
 cv_predictions_hgbr_05_concat = pl.concat(cv_predictions_hgbr_05, how="vertical")
@@ -1658,6 +1680,12 @@ for kind in ["actual_vs_predicted", "residual_vs_predicted"]:
 
     fig.suptitle(f"{kind} for GBRT minimzing different quantile losses")
 
+# %% [markdown]
+#
+# Those plots carry the same information than the previous ones.
+#
+# Now, we assess if the actual coverage of the models is close to the target coverage of
+# 90%. In addition, we compute the average width of the bands.
 
 # %%
 def coverage(y_true, y_quantile_low, y_quantile_high):
@@ -1685,21 +1713,41 @@ coverage(
     cv_predictions_hgbr_95_concat["predicted_load_mw"].to_numpy(),
 )
 
+# %% [markdown]
+#
+# We see that the obtained coverage (~77%) on the cross-validated predictions is much
+# lower than the target coverage of 90%. It means that the pair of regressors is not
+# jointly calibrated to estimate the 90% interval.
+
+# %%
 mean_width(
     cv_predictions_hgbr_50_concat["load_mw"].to_numpy(),
     cv_predictions_hgbr_05_concat["predicted_load_mw"].to_numpy(),
     cv_predictions_hgbr_95_concat["predicted_load_mw"].to_numpy(),
 )
 
-# Compute binned coverage scores
+# %% [markdown]
+#
+# In terms of interpretable measure, the mean width provides a measure in the original
+# unit of the target variable in MW that is ~5,100 MW.
+
+# %% [markdown]
+#
+# We can go a bit further and bin the cross-validated predictions and check if some
+# specific bins show a better or worse coverage.
+
+# %%
 binned_coverage_results = binned_coverage(
     [df["load_mw"].to_numpy() for df in cv_predictions_hgbr_50],
     [df["predicted_load_mw"].to_numpy() for df in cv_predictions_hgbr_05],
     [df["predicted_load_mw"].to_numpy() for df in cv_predictions_hgbr_95],
     n_bins=10,
 )
-
 binned_coverage_results
+
+# %% [markdown]
+#
+# Let's make a plot to check those data visually.
 
 # %%
 coverage_by_bin = binned_coverage_results.copy()
@@ -1708,19 +1756,18 @@ coverage_by_bin["bin_label"] = coverage_by_bin.apply(
 )
 
 # %%
-ax = coverage_by_bin.boxplot(
-    column="coverage", by="bin_label", figsize=(12, 6), vert=False, whis=1000
-)
-ax.axvline(x=0.9, color="red", linestyle="--", label="Target coverage (0.9)")
-ax.set_xlabel("Load bins (MW)")
-ax.set_ylabel("Coverage")
+ax = coverage_by_bin.boxplot(column="coverage", by="bin_label", whis=1000)
+ax.axhline(y=0.9, color="red", linestyle="--", label="Target coverage (0.9)")
+ax.set(xlabel="Load bins (MW)", ylabel="Coverage", title="Coverage Distribution by Load Bins")
 ax.set_title("Coverage Distribution by Load Bins")
 ax.legend()
 plt.suptitle("")  # Remove automatic suptitle from boxplot
-plt.xticks(rotation=45)
-plt.tight_layout()
+_ = plt.xticks(rotation=45)
 
 # %% [markdown]
+#
+# We observe that the lower and higher bins, so low and high load, have the worse
+# coverage with a high variability.
 #
 # ## Reliability diagrams and Lorenz curves for quantile regression
 
