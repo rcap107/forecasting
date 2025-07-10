@@ -322,4 +322,3 @@ for metric_name, dataset_type in itertools.product(["mape", "r2"], ["train", "te
 # of scores or computational cost. The trend of the scores along the horizon is also
 # different from the `HistGradientBoostingRegressor`: the scores worsen as the horizon
 # increases.
-

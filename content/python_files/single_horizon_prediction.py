@@ -271,12 +271,12 @@ hgbr_cv_results.round(3)
 # Those results show very good performance of the model: less than 3% of mean
 # absolute percentage error (MAPE) on the test folds. Similarly, all the
 # deviance scores are close to 1.0.
-# 
+#
 # We observe a bit of variability in the scores across the different folds: in
 # particular the test performance on the first fold seems to be worse than the
 # other folds. This is likely due to the fact that the first fold contains
 # training data from 2021 and 2022 and the test data mostly from 2023.
-# 
+#
 # The invasion in Ukraine and a sharp drop in nuclear electricity production
 # due to safety problems strongly impacted the distribution of the electricity
 # prices in 2022, with unprecedented high prices, which can in turn cause a
@@ -642,4 +642,3 @@ fig.update_layout(margin=dict(l=200))
 
 # %%
 # nested_cv_results_ridge.round(3)
-

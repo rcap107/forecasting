@@ -247,9 +247,7 @@ plot_residuals_vs_predicted(cv_predictions_hgbr_05).interactive().properties(
 
 # %%
 plot_residuals_vs_predicted(cv_predictions_hgbr_50).interactive().properties(
-    title=(
-        "Residuals vs Predicted Values from cross-validation predictions for median"
-    )
+    title=("Residuals vs Predicted Values from cross-validation predictions for median")
 )
 
 # %%
@@ -314,6 +312,7 @@ for kind in ["actual_vs_predicted", "residual_vs_predicted"]:
 #
 # Now, we assess if the actual coverage of the models is close to the target coverage of
 # 90%. In addition, we compute the average width of the bands.
+
 
 # %%
 def coverage(y_true, y_quantile_low, y_quantile_high):
@@ -384,7 +383,11 @@ coverage_by_bin["bin_label"] = coverage_by_bin.apply(
 # %%
 ax = coverage_by_bin.boxplot(column="coverage", by="bin_label", whis=1000)
 ax.axhline(y=0.9, color="red", linestyle="--", label="Target coverage (0.9)")
-ax.set(xlabel="Load bins (MW)", ylabel="Coverage", title="Coverage Distribution by Load Bins")
+ax.set(
+    xlabel="Load bins (MW)",
+    ylabel="Coverage",
+    title="Coverage Distribution by Load Bins",
+)
 ax.set_title("Coverage Distribution by Load Bins")
 ax.legend()
 plt.suptitle("")  # Remove automatic suptitle from boxplot
