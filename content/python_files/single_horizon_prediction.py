@@ -148,31 +148,6 @@ hgbr_pipeline.describe_params()
 # on the same data) so that we can interactively check that everything will
 # work as expected.
 #
-# Let's use altair to visualize the predictions against the target values for
-# the last 24 hours of the prediction time range used to train the model. This
-# allows us can (over)fit the data with the features at hand.
-
-# %%
-altair.Chart(
-    pl.concat(
-        [
-            targets.skb.preview(),
-            hgbr_predictions.rename(
-                {target_column_name: predicted_target_column_name}
-            ).skb.preview(),
-        ],
-        how="horizontal",
-    ).tail(24 * 7)
-).transform_fold(
-    [target_column_name, predicted_target_column_name],
-).mark_line(
-    tooltip=True
-).encode(
-    x="prediction_time:T", y="value:Q", color="key:N"
-).interactive()
-
-# %% [markdown]
-#
 # ## Assessing the model performance via cross-validation
 #
 # Being able to fit the training data is not enough. We need to assess the
@@ -295,6 +270,25 @@ hgbr_cv_predictions = collect_cv_predictions(
 hgbr_cv_predictions[0]
 
 # %% [markdown]
+#
+# As a sanity check, we will take a look at the predictions on the first fold and plot
+# the observed values and the prediction values from the model. We limit the
+# visualization to the last 7 days of the fold.
+
+# %%
+altair.Chart(
+    hgbr_cv_predictions[0].tail(24 * 7)
+).transform_fold(
+    ["load_mw", "predicted_load_mw"],
+).mark_line(
+    tooltip=True
+).encode(
+    x="prediction_time:T", y="value:Q", color="key:N"
+).interactive()
+
+# %% [markdown]
+#
+# Now, let's check the performance of our models.
 #
 # The first curve is called the Lorenz curve. It shows on the x-axis the fraction of
 # observations sorted by predicted values and on the y-axis the cumulative observed
@@ -481,52 +475,10 @@ predictions_ridge
 # %% [markdown]
 #
 # Now that you defined the predictive model, let's make a similar analysis than earlier.
-# First, let's make a sanity check that plot forecast of our model on a subset of the
-# training data to make a sanity check.
-
-# %%
-# Write your code here.
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-
-# %%
-altair.Chart(
-    pl.concat(
-        [
-            targets.skb.preview(),
-            predictions_ridge.rename(
-                {target_column_name: predicted_target_column_name}
-            ).skb.preview(),
-        ],
-        how="horizontal",
-    ).tail(24 * 7)
-).transform_fold(
-    [target_column_name, predicted_target_column_name],
-).mark_line(
-    tooltip=True
-).encode(
-    x="prediction_time:T", y="value:Q", color="key:N"
-).interactive()
-
-
-# %% [markdown]
-#
-# Now, let's evaluate the performance of the model using cross-validation. Use the
+# Let's evaluate the performance of the model using cross-validation. Use the
 # time-based cross-validation splitter `ts_cv_5` defined earlier. Make sure to compute
 # the R2 score and the mean absolute percentage error. Return the training scores as
 # well as the fitted pipeline such that we can make additional analysis.
-#
-# Does this model perform better or worse than the previous model?
-# Is it underfitting or overfitting?
 
 # %%
 # Write your code here.
@@ -556,13 +508,12 @@ cv_results_ridge = predictions_ridge.skb.cross_validate(
 )
 
 # %% [markdown]
+# Do a sanity check by plotting the observed values and predictions for the first fold
+# as we did earlier.
 #
-# Compute all cross-validated predictions to plot the Lorenz curve and the
-# reliability diagram for this pipeline.
-#
-# To do so, you can use the function `collect_cv_predictions` to collect the
-# predictions and then call the `plot_lorenz_curve` and
-# `plot_reliability_diagram` functions to plot the results.
+# Then, make an analysis of the cross-validated metrics.
+# Does this model perform better or worse than the previous model?
+# Is it underfitting or overfitting?
 
 # %%
 # Write your code here.
@@ -579,9 +530,39 @@ cv_results_ridge = predictions_ridge.skb.cross_validate(
 #
 
 # %%
+cv_results_ridge.round(3)
+
+# %%
 cv_predictions_ridge = collect_cv_predictions(
     cv_results_ridge["pipeline"], ts_cv_5, predictions_ridge, prediction_time
 )
+
+# %%
+altair.Chart(cv_predictions_ridge[0].tail(24 * 7)).transform_fold(
+    ["load_mw", "predicted_load_mw"],
+).mark_line(
+    tooltip=True
+).encode(
+    x="prediction_time:T", y="value:Q", color="key:N"
+).interactive()
+
+# %% [markdown]
+#
+# Compute the Lorenz curve and the reliability diagram for this pipeline.
+
+# %%
+# Write your code here.
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
 
 # %%
 plot_lorenz_curve(cv_predictions_ridge).interactive()
