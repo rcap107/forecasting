@@ -760,11 +760,26 @@ for fold_idx, (train_idx, test_idx) in enumerate(
 
 # %% [markdown]
 #
-# Once the cross-validation strategy is defined, we pass it to the `cross_validate`
-# function provided by `skrub` to compute the cross-validated scores. Here, we define
-# the mean absolute percentage error that is interpretable. However, this metric is
-# not a proper scoring rule. We therefore look at the R2 score and the Tweedie deviance
-# score.
+# Once the cross-validation strategy is defined, we pass it to the
+# `cross_validate` function provided by `skrub` to compute the cross-validated
+# scores. Here, we compute the mean absolute percentage error that is easily
+# interpretable and customary for regression tasks with a strictly positive
+# target variable such as electricity load forecasting.
+#
+# We can also look at the R2 score and the Poisson and Gamma deviance which are
+# all strictly proper scoring rules for estimation of E[y|X]: in the large
+# sample limit, minimizers of those metrics all identify the conditional
+# expectation of the target variable given the features for strictly positive
+# target variables. All those metrics follow the higher is better convention,
+# 1.0 is the maximum reachable score and 0.0 is the score of a model that
+# predicts the mean of the target variable for all observations, irrespective
+# of the features.
+#
+# No that in general, a deviance score of 1.0 is not reachable since it
+# corresponds to a model that always predicts the target value exactly
+# for all observations. In practice, because there is always a fraction of the
+# variability in the target variable that is not explained by the information
+# available to construct the features.
 
 # %%
 from sklearn.metrics import make_scorer, mean_absolute_percentage_error, get_scorer
