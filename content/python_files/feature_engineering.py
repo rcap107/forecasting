@@ -120,9 +120,9 @@ time
 # re-run this notebook with more recent data.
 
 # %%
-data_source_folder = skrub.var("data_source_folder", Path("../datasets"))
+data_source_folder = skrub.var("data_source_folder", "../datasets")
 
-for data_file in sorted(data_source_folder.skb.eval().iterdir()):
+for data_file in sorted(Path(data_source_folder.skb.eval()).iterdir()):
     print(data_file)
 
 # %% [markdown]
@@ -222,7 +222,7 @@ def load_electricity_load_data(time, data_source_folder):
     """Load and aggregate historical load data from the raw CSV files."""
     load_data_files = [
         data_file
-        for data_file in sorted(data_source_folder.iterdir())
+        for data_file in sorted(Path(data_source_folder).iterdir())
         if data_file.name.startswith("Total Load - Day Ahead")
         and data_file.name.endswith(".csv")
     ]

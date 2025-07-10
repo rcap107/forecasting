@@ -17,7 +17,6 @@
 import warnings
 
 import skrub
-import polars as pl
 import altair
 import cloudpickle
 from plotly.io import write_json, read_json  # noqa: F401
