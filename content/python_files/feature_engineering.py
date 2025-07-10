@@ -1436,10 +1436,10 @@ for metric_name, dataset_type in itertools.product(["mape", "r2"], ["train", "te
 # of scores or computational cost. The trend of the scores along the horizon is also
 # different from the `HistGradientBoostingRegressor`: the scores worsen as the horizon
 # increases.
-
-# %% [markdown]
 #
 # ## Uncertainty quantification using quantile regression
+#
+# ### Define the quantile regressors
 #
 # In this section, we show how one can use a gradient boosting but modify the loss
 # function to predict different quantiles and thus obtain an uncertainty quantification
@@ -1489,59 +1489,8 @@ predictions_hgbr_95 = features_with_dropped_cols.skb.apply(
 
 # %% [markdown]
 #
-# Finally, we cross-validate each models and compute the above scores.
-
-# %%
-cv_results_hgbr_05 = predictions_hgbr_05.skb.cross_validate(
-    cv=ts_cv_5,
-    scoring=scoring,
-    return_pipeline=True,
-    verbose=1,
-    n_jobs=-1,
-)
-cv_results_hgbr_50 = predictions_hgbr_50.skb.cross_validate(
-    cv=ts_cv_5,
-    scoring=scoring,
-    return_pipeline=True,
-    verbose=1,
-    n_jobs=-1,
-)
-cv_results_hgbr_95 = predictions_hgbr_95.skb.cross_validate(
-    cv=ts_cv_5,
-    scoring=scoring,
-    return_pipeline=True,
-    verbose=1,
-    n_jobs=-1,
-)
-
-# %% [markdown]
-#
-# Let's now show the test scores for each model.
-
-# %%
-cv_results_hgbr_05[
-    [col for col in cv_results_hgbr_05.columns if col.startswith("test_")]
-].mean(axis=0).round(3)
-
-# %%
-cv_results_hgbr_50[
-    [col for col in cv_results_hgbr_50.columns if col.startswith("test_")]
-].mean(axis=0).round(3)
-
-# %%
-cv_results_hgbr_95[
-    [col for col in cv_results_hgbr_95.columns if col.startswith("test_")]
-].mean(axis=0).round(3)
-
-# %% [markdown]
-#
-# Focusing on the different D2 scores, we observe that each model minimize the D2 score
-# associated to the target quantile that we set. For instance, the model predicting the
-# 5th percentile obtained the highest D2 pinball score with `alpha=0.05`. It is expected
-# but a confirmation of what loss each model minimizes.
-#
-# Now, let's make a plot of the predictions for each model. Let's first gather all
-# the predictions in a single dataframe.
+# Now, let's make a plot of the predictions for each model and thus we need to gather
+# all the predictions in a single dataframe.
 
 # %%
 results = pl.concat(
@@ -1594,6 +1543,55 @@ combined_chart.resolve_scale(color="independent").interactive()
 # dataset, we observe a potential interesting pattern: during the week days, the
 # 5th percentile is further from the median than during the weekend. However, for the
 # 95th percentile, the opposite is observed.
+#
+# ### Evaluation via cross-validation
+#
+# We evaluate the performance of the quantile regressors via cross-validation.
+
+# %%
+cv_results_hgbr_05 = predictions_hgbr_05.skb.cross_validate(
+    cv=ts_cv_5,
+    scoring=scoring,
+    return_pipeline=True,
+    verbose=1,
+    n_jobs=-1,
+)
+cv_results_hgbr_50 = predictions_hgbr_50.skb.cross_validate(
+    cv=ts_cv_5,
+    scoring=scoring,
+    return_pipeline=True,
+    verbose=1,
+    n_jobs=-1,
+)
+cv_results_hgbr_95 = predictions_hgbr_95.skb.cross_validate(
+    cv=ts_cv_5,
+    scoring=scoring,
+    return_pipeline=True,
+    verbose=1,
+    n_jobs=-1,
+)
+
+# %%
+cv_results_hgbr_05[
+    [col for col in cv_results_hgbr_05.columns if col.startswith("test_")]
+].mean(axis=0).round(3)
+
+# %%
+cv_results_hgbr_50[
+    [col for col in cv_results_hgbr_50.columns if col.startswith("test_")]
+].mean(axis=0).round(3)
+
+# %%
+cv_results_hgbr_95[
+    [col for col in cv_results_hgbr_95.columns if col.startswith("test_")]
+].mean(axis=0).round(3)
+
+# %% [markdown]
+#
+# Focusing on the different D2 scores, we observe that each model minimize the D2 score
+# associated to the target quantile that we set. For instance, the model predicting the
+# 5th percentile obtained the highest D2 pinball score with `alpha=0.05`. It is expected
+# but a confirmation of what loss each model minimizes.
 #
 # Now, let's collect the cross-validated predictions and plot the residual vs predicted
 # values for the different models.
@@ -1730,8 +1728,6 @@ mean_width(
 #
 # In terms of interpretable measure, the mean width provides a measure in the original
 # unit of the target variable in MW that is ~5,100 MW.
-
-# %% [markdown]
 #
 # We can go a bit further and bin the cross-validated predictions and check if some
 # specific bins show a better or worse coverage.
@@ -1769,7 +1765,7 @@ _ = plt.xticks(rotation=45)
 # We observe that the lower and higher bins, so low and high load, have the worse
 # coverage with a high variability.
 #
-# ## Reliability diagrams and Lorenz curves for quantile regression
+# ### Reliability diagrams and Lorenz curves for quantile regression
 
 # %%
 plot_reliability_diagram(
