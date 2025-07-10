@@ -9,4 +9,5 @@ parts:
   chapters:
   - file: content/notebooks/fetch_weather_data
   - file: content/notebooks/feature_engineering
+  - file: content/notebooks/single_horizon_prediction
   - file: content/notebooks/direct_vs_recursive_forecasting

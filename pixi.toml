@@ -27,6 +27,7 @@ pydot = ">=4.0.1,<5"
 u8darts = ">=0.36.0,<0.37"
 setuptools = "<81"
 plotly = ">=6.2.0,<7"
+cloudpickle = ">=3.1.1,<4"
 
 [pypi-dependencies]
 skrub = { git = "https://github.com/skrub-data/skrub", rev = "771f3870a23438211faefb0e54132781256acc0a" }
@@ -48,10 +49,11 @@ jupyterlite-pyodide-kernel = "*"
 python-libarchive-c = "*"
 
 [feature.doc.tasks]
+copy-pickled-pipelines = { cmd = "cp ./content/python_files/*.pkl ./content/notebooks/"}
 copy-tutorial-helpers = { cmd = "cp ./content/python_files/tutorial_helpers.py ./content/notebooks/tutorial_helpers.py" }
 copy-parallel-coordinates-plots = { cmd = "cp ./content/python_files/*.json ./content/notebooks/" }
-convert-to-notebooks = { cmd = "jupytext --to notebook ./content/python_files/*.py && mkdir -p ./content/notebooks && mv ./content/python_files/*.ipynb ./content/notebooks", depends-on = ["copy-tutorial-helpers", "copy-parallel-coordinates-plots"] }
-convert-to-executed-notebooks = { cmd = "jupytext --to notebook --execute ./content/python_files/*.py && mkdir -p ./content/notebooks && mv ./content/python_files/*.ipynb ./content/notebooks", depends-on = ["copy-tutorial-helpers", "copy-parallel-coordinates-plots"] }
+convert-to-notebooks = { cmd = "jupytext --to notebook ./content/python_files/*.py && mkdir -p ./content/notebooks && mv ./content/python_files/*.ipynb ./content/notebooks", depends-on = ["copy-pickled-pipelines", "copy-tutorial-helpers", "copy-parallel-coordinates-plots"] }
+convert-to-executed-notebooks = { cmd = "jupytext --to notebook --execute ./content/python_files/*.py && mkdir -p ./content/notebooks && mv ./content/python_files/*.ipynb ./content/notebooks", depends-on = ["copy-pickled-pipelines", "copy-tutorial-helpers", "copy-parallel-coordinates-plots"] }
 build-book = { cmd = "jupyter-book build book", depends-on = ["convert-to-notebooks", "copy-tutorial-helpers", "copy-parallel-coordinates-plots"] }
 build-jupyterlite = { cmd = "jupyter lite build --contents content --output-dir dist", cwd = "jupyterlite", depends-on = ["convert-to-notebooks"] }
 serve-jupyterlite = { cmd = "python -m http.server", cwd = "jupyterlite/dist", depends-on = ["build-jupyterlite"] }
