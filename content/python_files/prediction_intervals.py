@@ -16,10 +16,11 @@
 # %%
 import warnings
 
-import polars as pl
 import altair
 import cloudpickle
 import numpy as np
+import pyarrow  # noqa: F401
+import polars as pl
 
 from tutorial_helpers import (
     binned_coverage,
