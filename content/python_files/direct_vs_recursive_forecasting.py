@@ -191,17 +191,17 @@ schema = dict(
 # %%
 mlf.preprocess(data_train, **schema)
 
-# %%
-PREDICTION_HORIZON = SEGMENT_LENGTH * 2
-
 # %% [markdown]
+#
 # ## Recursive or auto-regressive forecasting
 
+# %%
 tic = perf_counter()
 mlf.fit(data_train, **schema)  # recursive forecasting by default in mlforecast
 print(f"Recursive forecasting training time: {perf_counter() - tic:.1f} seconds")
 
 # %%
+PREDICTION_HORIZON = SEGMENT_LENGTH * 2
 
 
 def collect_predictions(mlf, data_test, test_offset=0):
@@ -226,9 +226,7 @@ def collect_predictions(mlf, data_test, test_offset=0):
 
 tic = perf_counter()
 all_recursive_predictions = collect_predictions(mlf, data_test)
-print(
-    f"Recursive forecasting prediction time: {perf_counter() - tic:.1f} seconds"
-)
+print(f"Recursive forecasting prediction time: {perf_counter() - tic:.1f} seconds")
 
 # %% [markdown]
 #
@@ -240,8 +238,8 @@ print(
 tic = perf_counter()
 mlf.fit(data_train, max_horizon=PREDICTION_HORIZON, **schema)
 print(f"Direct forecasting training time: {perf_counter() - tic:.1f} seconds")
-# %%
 
+# %%
 tic = perf_counter()
 all_direct_predictions = collect_predictions(mlf, data_test)
 print(f"Direct forecasting prediction time: {perf_counter() - tic:.1f} seconds")
@@ -249,6 +247,7 @@ print(f"Direct forecasting prediction time: {perf_counter() - tic:.1f} seconds")
 # %% [markdown]
 #
 # ## Quantitative comparison
+
 
 # %%
 def score_predictions(all_predictions, model_name):
@@ -275,6 +274,7 @@ _ = ax.set(ylabel="MAE")
 #
 # ## Qualitative comparison
 
+
 # %%
 def plot_some_predictions(all_predictions, data_test, model_name, nrows=12, title=None):
 
@@ -297,12 +297,13 @@ def plot_some_predictions(all_predictions, data_test, model_name, nrows=12, titl
 
 # %%
 plot_some_predictions(
-    all_recursive_predictions, data_test, "HistGradientBoostingRegressor", title="recursive"
+    all_recursive_predictions,
+    data_test,
+    "HistGradientBoostingRegressor",
+    title="recursive",
 )
 
 # %%
 plot_some_predictions(
     all_direct_predictions, data_test, "HistGradientBoostingRegressor", title="direct"
 )
-
-# %%
