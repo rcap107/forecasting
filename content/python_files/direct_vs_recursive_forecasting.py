@@ -33,6 +33,7 @@
 # with lagged feature engineering.
 
 # %%
+from time import perf_counter
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -196,12 +197,11 @@ PREDICTION_HORIZON = SEGMENT_LENGTH * 2
 # %% [markdown]
 # ## Recursive or auto-regressive forecasting
 
-# %%time
+tic = perf_counter()
 mlf.fit(data_train, **schema)  # recursive forecasting by default in mlforecast
-
+print(f"Recursive forecasting training time: {perf_counter() - tic:.1f} seconds")
 
 # %%
-# %%time
 
 
 def collect_predictions(mlf, data_test, test_offset=0):
@@ -224,7 +224,11 @@ def collect_predictions(mlf, data_test, test_offset=0):
     return all_predictions
 
 
+tic = perf_counter()
 all_recursive_predictions = collect_predictions(mlf, data_test)
+print(
+    f"Recursive forecasting prediction time: {perf_counter() - tic:.1f} seconds"
+)
 
 # %% [markdown]
 #
@@ -233,9 +237,14 @@ all_recursive_predictions = collect_predictions(mlf, data_test)
 # Let's pass `max_horizon` to force modeling for direct forecasting.
 
 # %%
+tic = perf_counter()
 mlf.fit(data_train, max_horizon=PREDICTION_HORIZON, **schema)
+print(f"Direct forecasting training time: {perf_counter() - tic:.1f} seconds")
 # %%
+
+tic = perf_counter()
 all_direct_predictions = collect_predictions(mlf, data_test)
+print(f"Direct forecasting prediction time: {perf_counter() - tic:.1f} seconds")
 
 # %% [markdown]
 #
@@ -260,7 +269,7 @@ score_predictions(
 score_predictions(
     all_direct_predictions, "HistGradientBoostingRegressor"
 ).mean().reset_index().plot(x="horizon", y="absolute_error", label="direct ", ax=ax)
-ax.set(ylabel="MAE")
+_ = ax.set(ylabel="MAE")
 
 # %% [markdown]
 #
