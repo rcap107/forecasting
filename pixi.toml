@@ -49,7 +49,7 @@ jupyterlite-pyodide-kernel = "*"
 python-libarchive-c = "*"
 
 [feature.doc.tasks]
-execute-file-creating-pickle = { cmd = "python ./content/python_files/feature_engineering.py" }
+execute-file-creating-pickle = { cmd = "python feature_engineering.py", cwd = "content/python_files" }
 create-notebooks-dir = { cmd = "mkdir -p ./content/notebooks" }
 copy-pickled-pipelines = { cmd = "cp ./content/python_files/*.pkl ./content/notebooks/", depends-on = ["create-notebooks-dir", "execute-file-creating-pickle"] }
 copy-tutorial-helpers = { cmd = "cp ./content/python_files/tutorial_helpers.py ./content/notebooks/tutorial_helpers.py", depends-on = ["create-notebooks-dir"] }
